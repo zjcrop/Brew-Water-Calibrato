@@ -18,3 +18,5 @@ https://zjcrop.github.io/Brew-Water-Calibrato/
 ## 使用提示
 
 本工具用于配方研究与计算辅助。实际原料的化学式、水合状态、纯度、食品用途合规性和批次 COA 应独立核验。
+
+pages build and deployment / deploy (dynamic) Failing after 10m
