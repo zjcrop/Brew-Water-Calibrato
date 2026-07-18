@@ -1,21 +1,995 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BrewIon - 萃离咖啡冲煮调水引擎</title>
-    <style>
-        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f5f5f5; }
-        .container { text-align: center; }
-        .btn { display: inline-block; padding: 12px 32px; background: #4CAF50; color: white; text-decoration: none; border-radius: 4px; font-size: 18px; }
-        .btn:hover { background: #45a049; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>萃离｜咖啡冲煮调水 配方2.5版</title>
+<link rel="icon" type="image/png" href="assets/app-icon.png">
+<style>
+:root{
+  --bg:#050608; --line:#242a34; --text:#f4f6f8; --muted:#9ea7b6;
+  --panel:#0d1118; --panel2:#10151d; --accent:#f6f1e6; --accentText:#111;
+  --orange:#ff9a3d; --orange2:#ffb96d; --blue:#7dd3fc;
+  --good:#103223; --warn:#4a3414; --bad:#471919;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;overflow-x:hidden}
+body{padding-bottom:94px}
+button,input,select{font:inherit}
+.page{display:none;padding:14px 14px 24px;max-width:560px;margin:0 auto}
+.page.active{display:block}
+.card{background:linear-gradient(180deg,#0d1118,#10141b);border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.22)}
+.hero-card{padding:0;overflow:hidden}
+
+/* 首页顶部改为用户提供的 SVG 视觉页 */
+.home-visual{height:48vh;min-height:360px;max-height:620px;position:relative;background:#020304;overflow:hidden;border-bottom:1px solid #181d25;display:flex;align-items:flex-start;justify-content:center}
+.home-visual::after{content:"";position:absolute;left:0;right:0;bottom:0;height:32%;background:linear-gradient(180deg,rgba(5,6,8,0),rgba(5,6,8,.72),#0d1118)}
+.home-visual .hero-svg{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;filter:drop-shadow(0 10px 30px rgba(0,0,0,.25))}
+.hero-content{padding:14px 16px 18px}
+.brand-line{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#121722;border:1px solid #2a3140;color:#e9eef6;font-size:12px;font-weight:800}
+.brand-line img{width:18px;height:18px;border-radius:50%}
+h1{font-size:32px;line-height:1.06;margin:14px 0 6px;letter-spacing:-.03em}
+.subttl{font-size:15px;color:#d9dee7;margin-bottom:10px;font-weight:700}
+.copy-note{color:#9ea7b6;font-size:12px;line-height:1.65;border-top:1px solid #232a35;padding-top:12px;margin-top:12px}
+.copy-note strong{color:#d4dae3}
+.author-row{display:grid;grid-template-columns:72px 1fr;gap:12px;background:#090c12;border:1px solid #242a34;border-radius:20px;padding:12px;margin-top:14px;align-items:center}
+.author-row img{width:72px;height:72px;border-radius:16px;object-fit:cover}
+.author-row h3{margin:0 0 6px;font-size:17px}
+.author-row p{margin:2px 0;color:#dfe4ec;font-size:14px;line-height:1.5}
+.primary-btn,.secondary-btn{width:100%;border:none;border-radius:18px;padding:15px 16px;font-weight:900;cursor:pointer}
+.primary-btn{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#111;box-shadow:0 8px 20px rgba(255,154,61,.2)}
+.secondary-btn{background:#10151d;border:1px solid #2f3947;color:#fff}
+.section-title{font-size:17px;font-weight:900;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.input-label{font-size:13px;font-weight:800;margin:12px 0 8px;color:#dce2eb}
+.select-like{background:#0d1118;border:1px solid #232a35;border-radius:16px;padding:12px;color:#fff;width:100%}
+.system-row,.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.system-btn,.mode-btn,.mat-item,.tab-btn{border:none;background:#0d1118;color:#fff;border-radius:18px;border:1px solid #232a36;cursor:pointer}
+.system-btn,.mode-btn{padding:12px;text-align:left}
+.system-btn strong,.mode-btn strong{display:block;font-size:14px}
+.system-btn small,.mode-btn small{display:block;color:#9da6b3;font-size:12px;margin-top:4px;line-height:1.45}
+.system-btn.active,.mode-btn.active{border-color:#3e8ec4;background:#111926;box-shadow:inset 0 0 0 1px rgba(125,211,252,.12)}
+.note-box{margin-top:10px;padding:12px;border-radius:16px;background:#0d1730;border:1px solid #20345f;color:#d7e3ff;font-size:13px;line-height:1.65}
+.slider-card{background:#0b0f15;border:1px solid #232a35;border-radius:18px;padding:12px}
+.srow{margin-bottom:14px}.srow:last-child{margin-bottom:0}
+.shead{display:flex;justify-content:space-between;gap:10px;margin-bottom:7px}
+.shead b{font-size:14px}.shead small{display:block;color:#99a2af;font-size:12px;line-height:1.35;margin-top:2px}
+.score{background:#1b2230;padding:4px 8px;border-radius:10px;font-size:12px;font-weight:900;min-width:40px;text-align:center}
+input[type=range]{width:100%;accent-color:#ff9a3d}
+.budget-box{margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;background:#0a0f15;border:1px solid #232a35;padding:10px;border-radius:16px}
+.budget-box .k{font-size:12px;color:#9ea7b6}.budget-box .v{font-size:18px;font-weight:900}
+.mat-group-title{display:flex;justify-content:space-between;align-items:center;margin:10px 0 8px;font-size:13px;color:#cad1dc;font-weight:900}
+.mat-list{display:grid;gap:8px}
+.mat-item{padding:10px 12px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.mat-item .meta{text-align:left}.mat-item b{display:block;font-size:14px}
+.mat-item small{display:block;color:#98a1ae;font-size:12px;line-height:1.4}
+.mat-ion{margin-top:5px;color:#d4dde9!important}
+.warning-text{margin-top:5px;color:#ffcc8a!important}
+.more-toggle{display:flex;align-items:center;justify-content:center;gap:6px;background:#10161f;border:1px dashed #344055;border-radius:14px;padding:10px;color:#dfe7f5;font-size:13px;font-weight:800;cursor:pointer}
+.orange-big{margin-top:12px;padding:16px;border-radius:20px;background:linear-gradient(180deg,#26170b,#19110a);border:1px solid #6a4220;color:var(--orange);font-size:28px;font-weight:1000;text-align:center;letter-spacing:.02em}
+.tds-panel{margin-top:12px;background:#0b1118;border:1px solid #283344;border-radius:20px;padding:14px}
+.tds-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.tds-head h3{margin:0;font-size:16px}
+.tds-state{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:900}
+.tds-low{background:#20344f;color:#a8d0ff}.tds-ok{background:#153222;color:#aaeac5}.tds-mid{background:#4a3513;color:#ffd99d}.tds-high{background:#4c1b1b;color:#ffb5b5}
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.info-box{background:#0f151d;border:1px solid #253040;border-radius:16px;padding:10px}
+.info-box small{display:block;color:#9ba4b2;font-size:12px}.info-box b{font-size:18px}.info-box .sub{display:block;color:#b9c0ca;font-size:12px;margin-top:4px;line-height:1.4}
+.mini-btn{border:none;background:#171d27;color:#fff;border:1px solid #2d3747;border-radius:12px;padding:8px 12px;font-weight:800;cursor:pointer}
+.accordion{margin-top:12px}.acc-item{background:#0b1016;border:1px solid #222a35;border-radius:18px;margin-bottom:10px;overflow:hidden}
+.acc-head{width:100%;display:flex;justify-content:space-between;gap:10px;align-items:center;background:transparent;border:none;color:#fff;padding:13px 14px;font-weight:900;cursor:pointer}
+.acc-body{display:none;padding:0 14px 14px;color:#cfd5de;font-size:13px;line-height:1.75}.acc-item.open .acc-body{display:block}
+.acc-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.acc-metric{background:#101722;border:1px solid #263143;border-radius:14px;padding:10px}
+.acc-metric small{display:block;color:#9da7b4;font-size:11px}.acc-metric b{font-size:17px}
+.acc-warning{margin-top:10px;padding:10px 12px;border-radius:14px;background:#17130d;border:1px solid #4d3a17;color:#ffe0a6}
+.recipe-list{margin-top:12px;display:grid;gap:12px}
+.recipe-card{background:#0b1016;border:1px solid #222a35;border-radius:18px;padding:12px}
+.recipe-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.recipe-top h4{margin:0;font-size:16px}.recipe-top .role{display:block;color:#9da6b3;font-size:12px;margin-top:3px;line-height:1.4}
+.amt-box{text-align:right}.amt-box b{display:block;font-size:18px}.amt-box small{display:block;color:#9ba4b2;font-size:12px}
+.delta{font-size:12px;font-weight:900;margin-top:5px}.delta.pos{color:var(--orange)}.delta.neg{color:#81d4fa}
+.tweak-head{margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tweak-toggle{display:flex;align-items:center;gap:6px;color:#ffd7a8;font-size:13px;font-weight:800;cursor:pointer;user-select:none}
+.tweak-body{display:none;padding-top:8px}.tweak-body.show{display:block}
+.tweak-labels{display:flex;justify-content:space-between;color:#96a0af;font-size:11px;margin-top:4px}
+.risk-chip{display:inline-flex;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:900;margin-right:8px;margin-bottom:8px}
+.good{background:var(--good);color:#aeeec8}.warn{background:var(--warn);color:#ffd89d}.bad{background:var(--bad);color:#ffb9b9}
+.risk-list{display:grid;gap:10px;margin-top:10px}
+.risk-item{background:#0f151d;border:1px solid #243040;border-radius:16px;padding:12px}
+.risk-item h4{margin:0 0 6px;font-size:15px}.risk-item p{margin:0;color:#cfd6de;font-size:13px;line-height:1.7}
+.optim-note{margin-top:12px;padding:12px;border-radius:16px;background:#17130d;border:1px solid #4d3a17;color:#ffe0a6;font-size:13px;line-height:1.7}
+.optim-change{margin-top:10px;padding:12px;border-radius:16px;background:#11161f;border:1px solid #263141;color:#d9e0e8;font-size:13px;line-height:1.7}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(7,9,12,.92);backdrop-filter:blur(16px);border-top:1px solid #232a35;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;z-index:50}
+.tab-btn{padding:10px 6px;text-align:center;font-size:12px;font-weight:900;background:#171c24;color:#f3f5f8}.tab-btn.active{background:var(--accent);color:var(--accentText);font-weight:1000}
+.helper{color:#99a2af;font-size:12px;line-height:1.6}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:60}
+.modal.show{display:flex}.modal-sheet{width:100%;max-width:560px;max-height:84vh;overflow:auto;background:linear-gradient(180deg,#10151d,#0d1118);border:1px solid #263040;border-radius:24px 24px 18px 18px;padding:16px}
+.modal-sheet h3{margin:0 0 10px}.modal-sheet p,.modal-sheet li{color:#d0d7e0;font-size:14px;line-height:1.75}
+.orange-text{color:var(--orange)}.hidden{display:none!important}
+@media(max-width:420px){.poster-title .main-cn{font-size:62px}.poster-title .sub-cn{font-size:17px;margin-top:38px}.poster-title .sub-en{font-size:17px}.page{padding-left:10px;padding-right:10px}}
+@media(min-width:640px){.page{max-width:620px}}
+
+/* 2.0版方案页视觉结构移植：指标卡、进度条、风险标签、解释面板、表格 */
+.v2-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.v2-stat{background:#0d0f12;border:1px solid #2a2d34;border-radius:18px;padding:12px}
+.v2-stat.primary{background:linear-gradient(180deg,#11171d,#0d1014);border-color:#28495b}
+.v2-stat small{display:block;color:#9ea4af;margin-bottom:5px;font-size:12px}
+.v2-big{font-size:23px;font-weight:950;letter-spacing:-.03em;line-height:1.08}
+.v2-sub{font-size:12px;color:#9ea4af;margin-top:4px;line-height:1.35}
+.v2-info{border:1px solid #2a2d34;border-radius:18px;padding:14px;margin-top:14px;background:#0e1115}
+.v2-info>b{font-size:15px}
+.v2-egrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.v2-ebox{background:#111419;border:1px solid #232831;border-radius:16px;padding:11px}
+.v2-ebox small{display:block;color:#9ea4af;font-size:12px}
+.v2-ebox b{font-size:18px}
+.v2-bar{height:8px;background:#232831;border-radius:999px;overflow:hidden;margin-top:7px}
+.v2-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#8bd3ff,#c4a36a)}
+.v2-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.v2-tag{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#1e232a;font-size:12px;font-weight:900}
+.good{background:#173224!important;color:#a4f2c3!important}
+.warnchip{background:#453116!important;color:#ffd693!important}
+.badchip{background:#471919!important;color:#ffb6b6!important}
+.v2-infogrid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px}
+.v2-infogrid h4{margin:0 0 5px;color:#9ea4af;font-size:13px}
+.v2-infogrid p{margin:0;color:#dde1e8;font-size:13px;line-height:1.65}
+.v2-tablewrap{border:1px solid #2a2d34;border-radius:18px;overflow:auto;background:#0d0f12;margin-top:10px}
+.v2-table{width:100%;border-collapse:collapse;font-size:12px;min-width:620px}
+.v2-table th{background:#171b21;color:#cfd5de;text-align:left;padding:9px;white-space:nowrap}
+.v2-table td{border-top:1px solid #242932;padding:9px;vertical-align:top}
+.v2-table th.r,.v2-table td.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.v2-helper{color:#9ea4af;font-size:12px;line-height:1.55}
+.v2-section-note{background:#111827;border:1px solid #23324d;color:#c7d8ff;border-radius:18px;padding:12px 14px;font-size:13px;line-height:1.7;margin-top:10px}
+.v2-pill{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:900;margin-right:6px}
+.v2-p-ok{background:#173224;color:#9ff0bf}.v2-p-mid{background:#3d2f14;color:#ffdc96}.v2-p-low{background:#3e1818;color:#ffb4b4}
+@media(min-width:520px){
+  .v2-stats{grid-template-columns:repeat(4,1fr)}
+  .v2-egrid{grid-template-columns:repeat(4,1fr)}
+  .v2-infogrid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:420px){
+  .v2-big{font-size:20px}
+  .v2-table{min-width:560px}
+}
+
+
+/* 方案页折叠板块 */
+.fold-card{
+  border:1px solid #2a2d34;
+  border-radius:18px;
+  background:#0e1115;
+  margin-top:14px;
+  overflow:hidden;
+}
+.fold-head{
+  width:100%;
+  border:none;
+  background:linear-gradient(180deg,#11161d,#0e1115);
+  color:#f4f5f7;
+  padding:13px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  font-weight:950;
+  cursor:pointer;
+  text-align:left;
+}
+.fold-head span:first-child{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:15px;
+}
+.fold-arrow{
+  flex:0 0 auto;
+  color:#cfd5de;
+  font-size:16px;
+  transition:transform .18s ease;
+}
+.fold-body{
+  display:none;
+  padding:0 14px 14px;
+}
+.fold-card.open .fold-body{
+  display:block;
+}
+.fold-card.open .fold-arrow{
+  transform:rotate(180deg);
+}
+.fold-card .tds-panel,
+.fold-card .v2-info{
+  margin-top:0;
+  border:none;
+  border-radius:0;
+  background:transparent;
+  padding:0;
+}
+.fold-card .tds-head{
+  display:none;
+}
+.fold-card .v2-info>b{
+  display:none;
+}
+
+
+/* 含硅体系研究版 */
+.system-row.silicon-systems{grid-template-columns:repeat(3,minmax(0,1fr))}
+.silica-panel{margin-top:10px;padding:13px;border-radius:18px;background:#0b1118;border:1px solid #304154}
+.silica-panel.hidden{display:none}
+.silica-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.silica-route-note{margin-top:10px;padding:10px 12px;border-radius:14px;background:#17130d;border:1px solid #4d3a17;color:#ffe0a6;font-size:12px;line-height:1.65}
+.research-warning{margin-top:10px;padding:11px 12px;border-radius:14px;background:#241313;border:1px solid #6b2626;color:#ffc1c1;font-size:12px;line-height:1.65}
+.silica-card{border-color:#38586c;background:linear-gradient(180deg,#0c1720,#0b1118)}
+.purity-note{margin-top:4px;color:#9dd8ff!important}
+@media(max-width:420px){
+  .system-row.silicon-systems,.silica-grid{grid-template-columns:1fr}
+}
+
+
+/* 2.2 配方界面重构 */
+.home-visual{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;display:block!important}
+.home-visual::after{display:none!important}
+.home-visual .hero-svg{width:100%!important;height:auto!important;object-fit:contain!important;object-position:center top!important;display:block!important}
+.home-control{padding:14px;background:#0d1118;border-top:1px solid #181d25}
+.home-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:10px}
+.about-panel{display:none;margin-top:12px;padding:14px;border-radius:18px;background:#10161e;border:1px solid #273241}
+.about-panel.show{display:block}
+.about-panel h4{margin:0 0 6px;font-size:14px}
+.about-panel p{margin:0 0 12px;color:#c9d1db;font-size:13px;line-height:1.7}
+.about-panel p:last-child{margin-bottom:0}
+
+.about-meta{display:grid;gap:12px}
+.about-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.about-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#151c27;border:1px solid #2b3748;color:#eef2f8;font-size:12px;font-weight:900}
+.qr-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:8px}
+.qr-card{display:grid;grid-template-columns:88px 1fr;gap:12px;align-items:center;padding:12px;border-radius:16px;background:#0d1118;border:1px solid #253040}
+.qr-card img{width:88px;height:88px;border-radius:14px;object-fit:cover;background:#fff}
+.qr-card h5{margin:0 0 5px;font-size:14px}
+.qr-card p{margin:0!important;color:#c9d1db;font-size:12px;line-height:1.65}
+.recipe-section-anchor{scroll-margin-top:14px}
+@media(max-width:420px){.qr-card{grid-template-columns:76px 1fr}.qr-card img{width:76px;height:76px}}
+.section-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:16px;background:#141a22;border:1px solid #2c3644;color:#f3f5f7;font-weight:900}
+.collapsible-panel{display:none;margin-top:10px}.collapsible-panel.show{display:block}
+.silica-enable-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.silica-field{margin-top:10px}
+.mode-top{margin-bottom:14px}
+.target-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.target-chip{padding:11px 6px;border-radius:14px;background:#151a22;border:1px solid #2a3340;color:#dfe5ec;font-weight:900}
+.target-chip.active{background:var(--accent);color:var(--accentText);border-color:transparent}
+.custom-target-box{margin-top:9px}
+.mat-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.mat-item{display:block;background:#10151c;border:1px solid #26303d;border-radius:16px;overflow:hidden;min-width:0}
+.mat-compact{min-height:66px;padding:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
+.mat-compact b{font-size:13px;line-height:1.35;word-break:break-word}
+.mat-check{flex:0 0 34px;width:34px;height:34px;position:relative;display:block;cursor:pointer}
+.mat-check input{position:absolute;opacity:0;pointer-events:none}
+.mat-check span{width:34px;height:34px;border-radius:11px;border:2px solid #526070;background:#0b0f14;color:transparent;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:1000;line-height:1}
+.mat-check input:checked+span{background:var(--accent);border-color:var(--accent);color:var(--accentText)}
+.mat-detail{display:none;padding:0 10px 11px;border-top:1px solid #232c38;color:#aeb8c5;font-size:11px;line-height:1.6}
+.mat-detail.show{display:block;padding-top:9px}
+.mat-detail small{display:block;margin-top:4px}
+.recipe-card{padding:0;overflow:hidden}
+.recipe-summary{display:grid;grid-template-columns:92px minmax(0,1fr) 42px;align-items:center;gap:10px;padding:12px;min-height:68px}
+.recipe-amount{font-size:23px;font-weight:1000;letter-spacing:-.04em;color:#fff;white-space:nowrap}
+.recipe-name{font-size:15px;font-weight:900;line-height:1.35;min-width:0}
+.recipe-arrow{width:38px;height:38px;border-radius:12px;background:#1a2029;border:1px solid #303a47;color:#fff;font-size:18px;font-weight:900}
+.recipe-card.open .recipe-arrow{transform:rotate(180deg)}
+.recipe-detail{display:none;padding:0 12px 13px;border-top:1px solid #232c38}
+.recipe-card.open .recipe-detail{display:block;padding-top:11px}
+.recipe-detail .detail-line{color:#aeb7c4;font-size:12px;line-height:1.65;margin-top:5px}
+.recipe-detail .detail-line:first-child{margin-top:0}
+.recipe-detail .tweak-head{margin-top:10px}
+.silica-card .recipe-amount{color:#9dd8ff}
+.fold-card{margin-top:12px}
+.fold-body{display:none}.fold-card.open .fold-body{display:block}
+#optimAction.hidden{display:none!important}
+@media(max-width:420px){
+  .target-presets{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .recipe-summary{grid-template-columns:78px minmax(0,1fr) 38px;gap:8px}
+  .recipe-amount{font-size:20px}
+  .mat-compact{min-height:62px;padding:9px}
+}
+
+
+/* 2.3 首页旗舰手机适配与底部导航显隐 */
+body.home-screen{padding-bottom:0!important;overflow-x:hidden}
+body.home-screen .bottom-nav{display:none!important}
+#page-home{padding:0!important;max-width:none!important;min-height:100dvh}
+body.home-screen #page-home.active{display:flex!important;align-items:stretch;justify-content:center}
+#page-home .hero-card{width:100%;max-width:560px;min-height:100dvh;margin:0 auto;border-radius:0!important;display:flex;flex-direction:column;overflow:hidden}
+#page-home .home-visual{flex:1 1 0!important;height:0!important;min-height:0!important;max-height:none!important;overflow:hidden!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;background:#020304}
+#page-home .home-visual::after{display:none!important}
+#page-home .home-visual .hero-svg{width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;object-fit:cover!important;object-position:center top!important;display:block!important}
+#page-home .home-control{flex:0 0 auto;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:#0d1118;border-top:1px solid #181d25}
+#page-home .home-actions button{min-height:48px}
+@media(max-width:430px){
+  #page-home .hero-card{max-width:none}
+  #page-home .home-control{padding-left:12px;padding-right:12px}
+}
+@supports not (height:100dvh){
+  #page-home,#page-home .hero-card{min-height:100vh}
+}
+
+</style>
 </head>
-<body>
-    <div class="container">
-        <h1>BrewIon</h1>
-        <p>萃离咖啡冲煮调水引擎校准版</p>
-        <a href="萃离_咖啡冲煮调水_引擎校准版_方案折叠版.html" class="btn">进入应用</a>
+<body class="home-screen">
+
+<section id="page-home" class="page active">
+  <div class="card hero-card">
+    <div class="home-visual">
+      <img class="hero-svg" src="assets/home-start.jpg" alt="萃离首页视觉海报">
     </div>
+    <div class="home-control">
+      <div class="home-actions">
+        <button class="secondary-btn" onclick="toggleAbout()">关于 <span id="aboutArrow">▾</span></button>
+        <button class="primary-btn" onclick="goPage('params')">开始调配</button>
+      </div>
+      
+<div id="aboutPanel" class="about-panel">
+  <div class="about-meta">
+    <div>
+      <h4>软件说明</h4>
+      <p>萃离用于咖啡冲煮水复矿、预设方案载入、风味微调、物质用量换算、TDS 预测与风险筛查。所有计算均为配方研究模型，原料化学式、水合状态、纯度与批次数据必须与实际采购物一致。</p>
+    </div>
+    <div>
+      <h4>版本说明</h4>
+      <div class="about-badges">
+        <span class="about-badge">版本 2.5</span>
+        <span class="about-badge">Capacitor Android 图标与导航修订版</span>
+      </div>
+      <p>本版使用完整比例水滴图作为 APP 图标，保留新版启动主页设计图；关于页增加返回按钮，风险页在无中高风险时提供返回方案物质用量区域的快捷按钮。</p>
+    </div>
+    <div>
+      <h4>版权说明</h4>
+      <p>本工具核心内容为个人编写，仅供咖啡调水研究与个人实验参考。转载、引用或二次传播应提前告知并注明来源。因原料等级、称量误差、包装吸潮或操作顺序不当产生的风险，应由实际使用者重新验证。</p>
+    </div>
+    <div>
+      <h4>关于与联系</h4>
+      <div class="qr-grid">
+        <div class="qr-card">
+          <img src="assets/xhs-qr.png" alt="小红书二维码">
+          <div>
+            <h5>小红书账号</h5>
+            <p>账号名：端茶倒水的秦始皇</p>
+            <p>扫描二维码，可在小红书找到对应主页与内容更新。</p>
+          </div>
+        </div>
+        <div class="qr-card">
+          <img src="assets/wechat-qr.png" alt="微信二维码">
+          <div>
+            <h5>个人微信</h5>
+            <p>扫码可添加个人微信，用于项目咨询与沟通。</p>
+            <p>请在添加时备注“萃离 / 调水”。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="secondary-btn" style="margin-top:14px" onclick="closeAboutAndReturn()">返回</button>
+  </div>
+</div>
+    </div>
+  </div>
+</section>
+
+<section id="page-params" class="page">
+  <div class="card">
+    <div class="section-title">⚙️ 配方</div>
+
+    <div class="mode-top">
+      <div class="input-label" style="margin-top:0">输出方式</div>
+      <div class="mode-row">
+        <button id="modePremix" class="mode-btn active" onclick="setOutputMode('premix')"><strong>预混合母粉</strong><small>生成目标重量的单一母粉</small></button>
+        <button id="modeDirect" class="mode-btn" onclick="setOutputMode('direct')"><strong>配方水</strong><small>按目标RO水体积直接换算</small></button>
+      </div>
+      <div class="input-label" id="targetLabel">目标总量（g）</div>
+      <div class="target-presets">
+        <button id="targetPreset1" class="target-chip active" onclick="setTargetPreset(0)">50</button>
+        <button id="targetPreset2" class="target-chip" onclick="setTargetPreset(1)">100</button>
+        <button id="targetPreset3" class="target-chip" onclick="setTargetPreset(2)">200</button>
+        <button id="targetCustomBtn" class="target-chip" onclick="setCustomTarget()">自定义</button>
+      </div>
+      <div id="customTargetBox" class="custom-target-box hidden">
+        <input id="targetAmount" class="select-like" type="number" min="0.1" step="0.1" value="50" oninput="customTargetChanged()">
+      </div>
+      <div class="helper" id="targetHelp" style="margin-top:8px">预混合母粉默认目标总量为50g。</div>
+    </div>
+
+    <div class="input-label">预设方案</div>
+    <select id="beanSelect" class="select-like" onchange="selectBean(this.value)"></select>
+    <div id="beanNote" class="note-box"></div>
+
+    <div class="input-label">配方体系</div>
+    <div class="system-row">
+      <button id="systemInorganic" class="system-btn" onclick="setSaltSystem('inorganic')"><strong>无机盐配方</strong><small>Ca/Mg由氯化物、硫酸盐等无机盐承担。</small></button>
+      <button id="systemHalf" class="system-btn active" onclick="setSaltSystem('half')"><strong>半有机盐配方</strong><small>无机盐与乳酸盐共同承担Ca/Mg。</small></button>
+    </div>
+
+    <div class="input-label">是否添加硅</div>
+    <div class="silica-enable-row">
+      <button id="silicaNo" class="system-btn active" onclick="setSilicaEnabled(false)"><strong>不添加</strong><small>不改变现有离子与粉体模型。</small></button>
+      <button id="silicaYes" class="system-btn" onclick="setSilicaEnabled(true)"><strong>添加</strong><small>展开硅源、剂量和使用提示。</small></button>
+    </div>
+
+    <div id="silicaPanel" class="silica-panel hidden">
+      <div class="input-label" style="margin-top:0">硅添加方案</div>
+      <select id="silicaRoute" class="select-like" onchange="setSilicaRoute(this.value)">
+        <option value="liquid">单独添加偏硅酸液体</option>
+        <option value="silica">二氧化硅调粉</option>
+        <option value="potassium">粉末硅酸钾</option>
+      </select>
+
+      <div id="silicaTargetBox" class="silica-field">
+        <div class="input-label">目标SiO₂当量，mg/L</div>
+        <input id="silicaTarget" class="select-like" type="number" min="0" max="10" step="0.5" value="2" oninput="silicaInputChanged()">
+      </div>
+
+      <div id="silicaPowderBox" class="silica-field hidden">
+        <div class="input-label">SiO₂占最终母粉比例，%</div>
+        <input id="silicaPowderPct" class="select-like" type="number" min="0" max="2" step="0.1" value="0.5" oninput="silicaInputChanged()">
+        <div class="helper" style="margin-top:6px">默认0.5%，按98%食品级亲水无定形SiO₂计算；作为抗结和分散辅助，不预设为有效可溶硅。</div>
+      </div>
+
+      <div id="silicaAssayBox" class="silica-field">
+        <div class="input-label">液体标签浓度，mg SiO₂/mL</div>
+        <input id="silicaAssay" class="select-like" type="number" min="0.1" step="0.1" value="10" oninput="silicaInputChanged()">
+      </div>
+
+      <div id="silicaKBox" class="silica-grid hidden">
+        <div>
+          <div class="input-label">产品SiO₂，%</div>
+          <input id="silicaKSiO2" class="select-like" type="number" min="1" max="90" step="0.1" value="55" oninput="silicaInputChanged()">
+        </div>
+        <div>
+          <div class="input-label">产品K₂O，%</div>
+          <input id="silicaKK2O" class="select-like" type="number" min="0" max="70" step="0.1" value="30" oninput="silicaInputChanged()">
+        </div>
+      </div>
+
+      <div id="silicaRouteNote" class="silica-route-note"></div>
+    </div>
+
+    <div class="input-label">风味控制</div>
+    <button id="flavorToggle" class="section-toggle" onclick="toggleFlavorPanel()"><span>风味微调</span><span id="flavorArrow">▾</span></button>
+    <div id="flavorPanel" class="collapsible-panel">
+      <div class="slider-card">
+        <div class="srow"><div class="shead"><div><b>花香 / 果香</b><small>内敛干净 ←→ 高扬突出</small></div><span id="sc-floral" class="score">70</span></div><input id="floral" type="range" min="0" max="100" value="70" oninput="budgetInput('floral')"></div>
+        <div class="srow"><div class="shead"><div><b>甜感 / 圆润</b><small>清爽轻盈 ←→ 甜厚圆润</small></div><span id="sc-sweet" class="score">55</span></div><input id="sweet" type="range" min="0" max="100" value="55" oninput="budgetInput('sweet')"></div>
+        <div class="srow"><div class="shead"><div><b>酸质处理</b><small>明亮清新 / 保酸 ←→ 柔和抑酸</small></div><span id="sc-acid" class="score">15</span></div><input id="acid" type="range" min="0" max="100" value="15" oninput="budgetInput('acid')"></div>
+        <div class="srow"><div class="shead"><div><b>抑苦 / 抑涩</b><small>保留锐度 ←→ 抑苦柔化</small></div><span id="sc-bitter" class="score">20</span></div><input id="bitter" type="range" min="0" max="100" value="20" oninput="budgetInput('bitter')"></div>
+        <div class="budget-box"><div><div class="k">预算上限</div><div class="v">200</div></div><div><div class="k">已使用</div><div id="budgetUsed" class="v">160</div></div><div><div class="k">剩余</div><div id="budgetLeft" class="v">40</div></div></div>
+      </div>
+    </div>
+
+    <div class="input-label">物质选择</div>
+    <div class="mat-group-title"><span>建议物质</span><span class="helper">点击物质名查看详情</span></div>
+    <div id="recommendedMats" class="mat-list"></div>
+    <div style="margin-top:10px" class="more-toggle" onclick="toggleMoreMats()"><span>更多物质</span><span id="moreArrow">▾</span></div>
+    <div id="moreMatsBox" class="hidden" style="margin-top:10px">
+      <div class="mat-group-title"><span>非建议 / 扩展物质</span><span class="helper">默认隐藏</span></div>
+      <div id="otherMats" class="mat-list"></div>
+    </div>
+
+    <div style="margin-top:14px"><button class="primary-btn" onclick="calcAndGo()">开始方案计算</button></div>
+  </div>
+</section>
+
+<section id="page-plan" class="page">
+  <div class="card">
+    <div class="section-title">🧪 方案结果</div>
+    <div id="mixSummary" class="orange-big">目标总量 50.0g</div>
+
+    <div class="v2-stats">
+      <div class="v2-stat primary"><small>方案</small><div id="v2MainId" class="v2-big">计算</div><div id="v2MainName" class="v2-sub">扩展离子配方</div></div>
+      <div class="v2-stat"><small>每5L添加</small><div id="dose5L" class="v2-big">0.000g</div><div class="v2-sub">整袋或对应剂量加入5L RO水</div></div>
+      <div class="v2-stat"><small>每1L添加</small><div id="dose1L" class="v2-big">0.000g</div><div class="v2-sub">等比例参考值</div></div>
+      <div class="v2-stat"><small>电导等效TDS</small><div id="tdsEffective" class="v2-big">0mg/L</div><span id="tdsBadge" class="tds-state tds-ok">合理</span></div>
+    </div>
+
+    <div class="fold-card" id="foldTds">
+      <button class="fold-head" onclick="toggleFold('foldTds')"><span>📊 预期TDS与用量说明</span><span class="fold-arrow">▾</span></button>
+      <div class="fold-body"><div class="tds-panel">
+        <div class="info-row"><div class="info-box"><small>质量折算TDS</small><b id="tdsTheory">0mg/L</b><span class="sub">按可溶添加质量折算</span></div><div class="info-box"><small>预设目标区间</small><b id="tdsTargetRange">0–0</b><span class="sub">按当前预设判断</span></div></div>
+        <div id="tdsText" class="helper" style="margin-top:10px"></div><div id="silicaSummary" class="note-box hidden"></div>
+        <div style="margin-top:10px"><button class="mini-btn" onclick="openModal('tds')">TDS说明</button></div>
+      </div></div>
+    </div>
+
+    <div class="fold-card" id="foldIon">
+      <button class="fold-head" onclick="toggleFold('foldIon')"><span>🧪 离子与结合负载指标</span><span class="fold-arrow">▾</span></button>
+      <div class="fold-body"><div class="v2-info">
+        <div class="v2-egrid">
+          <div class="v2-ebox"><small>Ca²⁺总量</small><b id="v2CaMgL">0.0mg/L</b><div class="v2-bar"><span id="v2BarCa"></span></div></div>
+          <div class="v2-ebox"><small>Mg²⁺总量</small><b id="v2MgMgL">0.0mg/L</b><div class="v2-bar"><span id="v2BarMg"></span></div></div>
+          <div class="v2-ebox"><small>碱度 as HCO₃⁻</small><b id="v2Hco3MgL">0.0mg/L</b><div class="v2-bar"><span id="v2BarHco3"></span></div></div>
+          <div class="v2-ebox"><small>Na占Na+K</small><b id="v2NaShare">0%</b><div class="v2-bar"><span id="v2BarNa"></span></div></div>
+        </div>
+        <div class="v2-egrid" style="margin-top:10px">
+          <div class="v2-ebox"><small>二价离子结合负载率</small><b id="v2BoundRate">0%</b><div class="v2-bar"><span id="v2BarBound"></span></div></div>
+          <div class="v2-ebox"><small>二价离子空载率</small><b id="v2FreeRate">0%</b><div class="v2-bar"><span id="v2BarFree"></span></div></div>
+          <div class="v2-ebox"><small>潜在沉淀负载率</small><b id="v2PrecipRate">0%</b><div class="v2-bar"><span id="v2BarPrecip"></span></div></div>
+          <div class="v2-ebox"><small>综合硬度 as CaCO₃</small><b id="v2Hardness">0.0mg/L</b><div class="v2-bar"><span id="v2BarHard"></span></div></div>
+        </div>
+        <div id="v2ReactionTags" class="v2-tags"></div>
+      </div></div>
+    </div>
+
+    <div class="fold-card" id="foldExplain">
+      <button class="fold-head" onclick="toggleFold('foldExplain')"><span>📝 方案解释</span><span class="fold-arrow">▾</span></button>
+      <div class="fold-body"><div class="v2-info">
+        <p id="v2Intent" class="v2-section-note"></p>
+        <div class="v2-infogrid"><div><h4>可用场景</h4><p id="v2BestFor"></p></div><div><h4>可能收益</h4><p id="v2Adv"></p></div><div><h4>潜在副作用</h4><p id="v2Draw"></p></div></div>
+      </div></div>
+    </div>
+
+    <div class="fold-card" id="foldAnion">
+      <button class="fold-head" onclick="toggleFold('foldAnion')"><span>⚗️ 阴离子负载、离子结合与反应评估</span><span class="fold-arrow">▾</span></button>
+      <div class="fold-body">
+        <div id="ionExplain"></div>
+        <div id="riskExplain" style="margin-top:10px"></div>
+        <div class="v2-tablewrap" style="margin-top:12px"><table class="v2-table"><thead><tr><th>项目</th><th class="r">估算值</th><th>解释</th></tr></thead><tbody id="v2IonBody"></tbody></table></div>
+      </div>
+    </div>
+
+    <div id="recipeSection" class="recipe-section-anchor">
+      <div class="section-title" style="margin-top:18px">📋 各种物质用量</div>
+      <div id="recipeList" class="recipe-list"></div>
+      <div style="margin-top:14px"><button class="secondary-btn" onclick="goPage('risk')">方案风险分析</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="page-risk" class="page">
+  <div class="card">
+    <div class="section-title">⚠️ 方案风险分析</div>
+    <div id="riskChips"></div>
+    <div id="riskItems" class="risk-list"></div>
+    <div id="optimAdvice" class="optim-note"></div>
+    <div id="optimAction" class="hidden" style="margin-top:12px"><button class="primary-btn" onclick="optimizeRecipe()">一键优化并返回方案页</button></div>
+    <div id="riskReturnAction" class="hidden" style="margin-top:12px"><button class="secondary-btn" onclick="returnToPlanRecipe()">返回</button></div>
+    <div id="optimChange" class="optim-change hidden"></div>
+  </div>
+</section>
+
+<div id="modal" class="modal" onclick="if(event.target===this) closeModal()">
+  <div class="modal-sheet"><h3 id="modalTitle"></h3><div id="modalBody"></div><div style="margin-top:10px"><button class="primary-btn" onclick="closeModal()">关闭</button></div></div>
+</div>
+
+<nav class="bottom-nav">
+  <button id="tab-home" class="tab-btn active" onclick="goPage('home')">主页</button>
+  <button id="tab-params" class="tab-btn" onclick="goPage('params')">配方</button>
+  <button id="tab-plan" class="tab-btn" onclick="goPage('plan')">方案</button>
+  <button id="tab-risk" class="tab-btn" onclick="goPage('risk')">风险</button>
+</nav>
+
+<script>
+const MAT=[
+{id:"cacl2",name:"CaCl₂｜无水氯化钙",group:"钙源",tier:"推荐",role:"钙结构 / 杯体",mw:110.98,purity:0.95,cation:"Ca",catN:1,anion:"Cl",anN:2,alkEq:0,recommended:true,default:true,tip:"补充 Ca²⁺ 与 Cl⁻；高时硬、咸、苦、干；吸湿性强。"},
+{id:"calac",name:"乳酸钙五水合物",group:"钙源",tier:"推荐",role:"柔和钙 / 圆润",mw:308.30,purity:0.99,cation:"Ca",catN:1,anion:"Lactate",anN:2,alkEq:0,recommended:true,default:true,tip:"补充 Ca²⁺ 与乳酸根；较柔和，过高可能粉感、钝感。"},
+{id:"caco3",name:"CaCO₃｜碳酸钙",group:"钙源",tier:"理论",role:"钙 + 碳酸根",mw:100.09,purity:0.99,cation:"Ca",catN:1,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 Ca²⁺ 与 CO₃²⁻；低溶解度，易白垩、浑浊、沉淀、水垢。"},
+{id:"cacit",name:"柠檬酸钙",group:"钙源",tier:"谨慎",role:"钙 + 柠檬酸络合",mw:570.49,purity:0.99,cation:"Ca",catN:3,anion:"Citrate",anN:2,alkEq:0.5,recommended:false,default:false,tip:"补充 Ca²⁺ 与柠檬酸根；会络合 Ca/Mg，改变结构和酸质。"},
+{id:"caglu",name:"葡萄糖酸钙",group:"钙源",tier:"谨慎",role:"柔和钙",mw:448.39,purity:0.99,cation:"Ca",catN:1,anion:"Gluconate",anN:2,alkEq:0,recommended:false,default:false,tip:"补充 Ca²⁺ 与葡萄糖酸根；较柔，但用量大时可能甜钝。"},
+{id:"mgso4",name:"MgSO₄｜无水硫酸镁",group:"镁源",tier:"推荐",role:"镁香气 / 明亮度",mw:120.37,purity:0.99,cation:"Mg",catN:1,anion:"SO4",anN:1,alkEq:0,recommended:true,default:true,tip:"补充 Mg²⁺ 与 SO₄²⁻；花果香与清晰度强，高时矿物、干涩。"},
+{id:"mglac",name:"乳酸镁二水合物",group:"镁源",tier:"推荐",role:"柔和镁",mw:238.44,purity:0.99,cation:"Mg",catN:1,anion:"Lactate",anN:2,alkEq:0,recommended:true,default:true,tip:"补充 Mg²⁺ 与乳酸根；比硫酸镁更柔，过高可能钝。"},
+{id:"mgco3",name:"MgCO₃｜碳酸镁",group:"镁源",tier:"理论",role:"镁 + 碳酸根",mw:84.31,purity:0.99,cation:"Mg",catN:1,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 Mg²⁺ 与 CO₃²⁻；低溶解度，易浑浊，不适合常规母粉。"},
+{id:"mgcl2",name:"MgCl₂·6H₂O｜六水氯化镁",group:"镁源",tier:"谨慎",role:"镁 + 氯根",mw:203.30,purity:0.99,cation:"Mg",catN:1,anion:"Cl",anN:2,alkEq:0,recommended:false,default:false,tip:"补充 Mg²⁺ 与 Cl⁻；溶解好，但高时苦咸、吸湿强。"},
+{id:"mgcit",name:"柠檬酸镁",group:"镁源",tier:"谨慎",role:"镁 + 柠檬酸络合",mw:451.12,purity:0.99,cation:"Mg",catN:3,anion:"Citrate",anN:2,alkEq:0.5,recommended:false,default:false,tip:"补充 Mg²⁺ 与柠檬酸根；可柔化，但可能削弱清晰度。"},
+{id:"mgglu",name:"葡萄糖酸镁",group:"镁源",tier:"谨慎",role:"柔和镁",mw:450.65,purity:0.99,cation:"Mg",catN:1,anion:"Gluconate",anN:2,alkEq:0,recommended:false,default:false,tip:"补充 Mg²⁺ 与葡萄糖酸根；用量大，可能甜钝或药感。"},
+{id:"khco3",name:"KHCO₃｜碳酸氢钾",group:"缓冲 / 钾钠",tier:"推荐",role:"HCO₃⁻缓冲 + K",mw:100.115,purity:0.99,cation:"K",catN:1,anion:"HCO3",anN:1,alkEq:1,recommended:true,default:true,tip:"补充 K⁺ 与 HCO₃⁻；抑酸核心，高时钾盐苦涩、白垩感。"},
+{id:"nahco3",name:"NaHCO₃｜碳酸氢钠",group:"缓冲 / 钾钠",tier:"推荐",role:"HCO₃⁻缓冲 + Na",mw:84.006,purity:0.99,cation:"Na",catN:1,anion:"HCO3",anN:1,alkEq:1,recommended:true,default:true,tip:"补充 Na⁺ 与 HCO₃⁻；可降低钾盐压力并帮助抑苦，高时钠感 / 碱感。"},
+{id:"k2co3",name:"K₂CO₃｜碳酸钾",group:"缓冲 / 钾钠",tier:"理论",role:"强碱度 + K",mw:138.205,purity:0.99,cation:"K",catN:2,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 K⁺ 与 CO₃²⁻；碱性强，容易皂感 / 闷钝。"},
+{id:"na2co3",name:"Na₂CO₃｜碳酸钠",group:"缓冲 / 钾钠",tier:"理论",role:"强碱度 + Na",mw:105.99,purity:0.99,cation:"Na",catN:2,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 Na⁺ 与 CO₃²⁻；碱感明显，易破坏酸质。"},
+{id:"nacl",name:"NaCl｜氯化钠",group:"感知盐",tier:"谨慎",role:"Na⁺感知抑苦，非缓冲",mw:58.44,purity:0.99,cation:"Na",catN:1,anion:"Cl",anN:1,alkEq:0,recommended:false,default:false,tip:"补充 Na⁺ 与 Cl⁻；极微量可抑苦，高时咸味明显。"},
+{id:"kcl",name:"KCl｜氯化钾",group:"感知盐",tier:"谨慎",role:"K⁺矿物感，非缓冲",mw:74.55,purity:0.99,cation:"K",catN:1,anion:"Cl",anN:1,alkEq:0,recommended:false,default:false,tip:"补充 K⁺ 与 Cl⁻；高时苦、金属、药感。"},
+{id:"nacit",name:"柠檬酸钠",group:"络合 / 缓冲",tier:"谨慎",role:"柠檬酸络合 + Na",mw:294.10,purity:0.99,cation:"Na",catN:3,anion:"Citrate",anN:1,alkEq:1.5,recommended:false,default:false,tip:"补充 Na⁺ 与柠檬酸根；可柔化并络合 Ca/Mg，高时柠檬盐感。"},
+{id:"kcit",name:"柠檬酸钾",group:"络合 / 缓冲",tier:"谨慎",role:"柠檬酸络合 + K",mw:324.41,purity:0.99,cation:"K",catN:3,anion:"Citrate",anN:1,alkEq:1.5,recommended:false,default:false,tip:"补充 K⁺ 与柠檬酸根；可络合二价离子，高时钾盐苦涩。"}
+];
+const IONM={Ca:40.078,Mg:24.305,Na:22.990,K:39.098,HCO3:61.017,CO3:60.008,Cl:35.45,SO4:96.06,Lactate:89.07,Citrate:189.10,Gluconate:195.17};
+const PROFILE={
+geisha:{name:"高萜烯花香型｜巴拿马瑰夏 / 高香 Gesha",s:[82,48,10,16],tds:[70,100],si:2,t:{ca:5.5,mg:12.0,hco3:15,na:.32},note:"极浅烘、高海拔、高萜烯花香和茶感。低 Ca、低碱度、中高 Mg，避免压香和白垩感。"},
+ethiopia:{name:"水洗花香柑橘型｜埃塞 74110 / 74112",s:[74,56,20,20],tds:[78,108],si:3,t:{ca:7.0,mg:12.5,hco3:20,na:.35},note:"茉莉、柑橘、茶感和轻盈甜感并重；Mg 保香，Ca 只做有限支撑。"},
+kenya:{name:"高酸黑加仑型｜肯尼亚 SL28 / SL34",s:[62,48,12,18],tds:[85,120],si:3,t:{ca:7.0,mg:15.0,hco3:16,na:.34},note:"保留磷酸触觉、黑加仑和明亮酸质；高 Mg、低碱度，不用强抑酸水。"},
+sweet:{name:"高甜芳香型｜74158 / 粉波旁 / Sidra / Pacamara",s:[66,78,30,24],tds:[88,120],si:4,t:{ca:9.5,mg:11.5,hco3:25,na:.38},note:"以浆果、热带水果、蔗糖感和圆润甜感为主；中等 Ca/Mg，控制碱度避免闷甜。"},
+washed:{name:"干净平衡水洗型｜Typica / Bourbon / Caturra",s:[54,65,30,25],tds:[90,125],si:4,t:{ca:10.0,mg:10.5,hco3:28,na:.40},note:"中美洲、哥伦比亚等干净水洗豆的通用平衡方案；酸甜、结构和洁净度均衡。"},
+honey:{name:"蜜处理 / 半水洗甜圆型",s:[50,76,38,30],tds:[95,130],si:5,t:{ca:11.0,mg:10.0,hco3:32,na:.42},note:"强调焦糖、蜜甜、圆润与中等果香；比水洗型提高 Ca 和缓冲，但控制矿物感。"},
+natural:{name:"日晒 / 厌氧发酵型",s:[58,78,48,36],tds:[100,140],si:5,t:{ca:12.0,mg:10.5,hco3:36,na:.44},note:"发酵酸、乳酸/乙酸、酒香和厚重水果感并存；需要中高结构和中等缓冲。"},
+wethulled:{name:"湿刨醇厚香料型｜苏门答腊 / 印尼",s:[34,68,45,42],tds:[100,140],si:6,t:{ca:14.0,mg:8.5,hco3:35,na:.46},note:"低调酸质、木质香料、草本与厚重醇感；提高 Ca，降低 Mg 的明亮驱动。"},
+dark:{name:"中深 / 深烘巧克力抑苦型",s:[24,72,50,66],tds:[90,125],si:4,t:{ca:12.0,mg:7.0,hco3:32,na:.50},note:"酸储备较低，目标是保留巧克力、焦糖和醇厚度，同时降低焦苦和尾段刺激。"},
+custom:{name:"自定义研究型",s:[70,55,15,20],tds:[85,120],si:3,t:{ca:9.0,mg:12.0,hco3:28,na:.40},note:"按当前风味预算、盐体系和硅路径计算。"}
+};
+let currentPage='home',selectedBean='geisha',outputMode='premix',saltSystem='half',silicaEnabled=false,silicaRoute='silica',moreOpen=false;
+
+const SILICA_ROUTES={
+  liquid:{
+    id:'liquid',name:'偏硅酸液体｜单独添加',mw:60.084,purity:.99,cation:null,
+    note:'按标签标示的mg SiO₂/mL计算体积。先在大体积RO水中稀释，再加入母粉溶液；不把未知稳定剂、Na、K或酸性载体自动计入。'
+  },
+  silica:{
+    id:'silica',name:'食品级无定形二氧化硅｜调粉',mw:60.084,purity:.98,cation:null,
+    note:'按最终母粉质量比例计算并与母粉几何预混。整袋加入5L RO水，充分摇匀后密闭静置24小时，使用前再次摇匀；只作为抗结与分散辅助，不预设完全溶解，不计入有效离子和电导TDS。'
+  },
+  potassium:{
+    id:'potassium',name:'粉末硅酸钾｜按产品组成计算',mw:0,purity:1,cation:'K',
+    note:'按产品COA中的SiO₂%与K₂O%计算。硅酸钾与其余母粉进行几何预混，整袋直接加入5L正在搅拌的RO水；自动计入K⁺与碱度并扣减KHCO₃预算。仅在取得可饮用用途合规依据后用于饮用配方。'
+  }
+};
+let lastSilicaBase=null;
+
+const selected={}; MAT.forEach(m=>selected[m.id]=m.default);
+const tweak={}; MAT.forEach(m=>tweak[m.id]=0);
+const openMatDetails=new Set();
+let openRecipeId=null;
+let lastBase=null,lastComputed=null,optimizationMessage='';
+const $=id=>document.getElementById(id);
+const fmt=(n,d=3)=>Number.isFinite(n)?Number(n).toFixed(d):'0.000';
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const riskClass=v=>v>=7.2?'bad':(v>=5.2?'warn':'good');
+const riskText=v=>v>=7.2?'高':(v>=5.2?'中':'低');
+
+function v2TierClass(t){
+  return t==='推荐'?'v2-p-ok':(t==='谨慎'?'v2-p-mid':'v2-p-low');
+}
+function v2SetText(id, txt){ const el=$(id); if(el) el.textContent=txt; }
+function v2SetHTML(id, html){ const el=$(id); if(el) el.innerHTML=html; }
+function v2SetBar(id, pct){ const el=$(id); if(el) el.style.width=clamp(pct,0,1)*100+'%'; }
+
+
+function toggleAbout(){const p=$('aboutPanel'),open=!p.classList.contains('show');p.classList.toggle('show',open);$('aboutArrow').textContent=open?'▴':'▾';}
+function closeAboutAndReturn(){const p=$('aboutPanel');p.classList.remove('show');$('aboutArrow').textContent='▾';window.scrollTo({top:0,behavior:'smooth'});}
+function toggleFlavorPanel(){const p=$('flavorPanel'),open=!p.classList.contains('show');p.classList.toggle('show',open);$('flavorArrow').textContent=open?'▴':'▾';}
+function toggleMatDetail(id,event){if(event)event.stopPropagation();if(openMatDetails.has(id))openMatDetails.delete(id);else openMatDetails.add(id);renderMats();}
+function toggleRecipeDetail(id,event){if(event)event.stopPropagation();openRecipeId=openRecipeId===id?null:id;renderRecipeCards(targetDisplay());}
+function closeRecipeDetails(){if(openRecipeId){openRecipeId=null;renderRecipeCards(targetDisplay());}}
+function setTargetPreset(index){
+  const vals=outputMode==='premix'?[50,100,200]:[1,5,10];
+  $('targetAmount').value=vals[index];$('customTargetBox').classList.add('hidden');
+  ['targetPreset1','targetPreset2','targetPreset3'].forEach((id,i)=>$(id).classList.toggle('active',i===index));$('targetCustomBtn').classList.remove('active');updateAll();
+}
+function setCustomTarget(){$('customTargetBox').classList.remove('hidden');['targetPreset1','targetPreset2','targetPreset3'].forEach(id=>$(id).classList.remove('active'));$('targetCustomBtn').classList.add('active');$('targetAmount').focus();}
+function customTargetChanged(){$('targetCustomBtn').classList.add('active');updateAll();}
+function syncTargetPresets(){
+  const vals=outputMode==='premix'?[50,100,200]:[1,5,10],unit=outputMode==='premix'?'':'L';
+  [$('targetPreset1'),$('targetPreset2'),$('targetPreset3')].forEach((el,i)=>el.textContent=vals[i]+unit);
+  $('targetLabel').textContent=outputMode==='premix'?'目标总量（g）':'目标水量（L）';
+  $('targetHelp').textContent=outputMode==='premix'?'预混合母粉提供50g、100g、200g与自定义目标总量。':'配方水提供1L、5L、10L与自定义目标体积。';
+}
+function goPage(page){if(page!=='plan')openRecipeId=null;currentPage=page;document.body.classList.toggle('home-screen',page==='home');['home','params','plan','risk'].forEach(p=>{$('page-'+p).classList.toggle('active',p===page);$('tab-'+p).classList.toggle('active',p===page);});window.scrollTo({top:0,behavior:'smooth'});if(page==='plan'||page==='risk')updateAll();}
+function returnToPlanRecipe(){
+  openRecipeId=null;
+  currentPage='plan';
+  document.body.classList.remove('home-screen');
+  ['home','params','plan','risk'].forEach(p=>{
+    $('page-'+p).classList.toggle('active',p==='plan');
+    $('tab-'+p).classList.toggle('active',p==='plan');
+  });
+  updateAll();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const el=$('recipeSection');
+    if(!el)return;
+    const top=Math.max(0,el.getBoundingClientRect().top+window.scrollY-12);
+    window.scrollTo({top,behavior:'smooth'});
+  }));
+}
+function renderBeans(){ $('beanSelect').innerHTML=Object.entries(PROFILE).map(([k,p])=>`<option value="${k}" ${selectedBean===k?'selected':''}>${p.name}</option>`).join(''); $('beanNote').innerHTML=`<strong>${PROFILE[selectedBean].name}</strong>：${PROFILE[selectedBean].note}`; }
+function selectBean(k){selectedBean=k;const p=PROFILE[k],s=p.s;['floral','sweet','acid','bitter'].forEach((id,i)=>$(id).value=s[i]);if($('silicaTarget')&&silicaRoute!=='silica')$('silicaTarget').value=p.si||2;renderBeans();updateScores();updateAll();}
+function budget(){const vals=['floral','sweet','acid','bitter'].map(id=>+$(id).value);const used=vals.reduce((a,b)=>a+b,0);return {used,left:Math.max(0,200-used)};}
+function updateScores(){['floral','sweet','acid','bitter'].forEach(id=>$('sc-'+id).textContent=$(id).value);const b=budget();$('budgetUsed').textContent=b.used;$('budgetLeft').textContent=b.left;}
+function budgetInput(id){const ids=['floral','sweet','acid','bitter'];const other=ids.filter(x=>x!==id).reduce((s,x)=>s+(+$(x).value),0);const max=Math.max(0,200-other);if(+$(id).value>max)$(id).value=max;updateScores();updateAll();}
+function setSaltSystem(system){
+  saltSystem=system;
+  $('systemInorganic').classList.toggle('active',system==='inorganic');
+  $('systemHalf').classList.toggle('active',system==='half');
+  if(system==='inorganic'){
+    selected.cacl2=true;selected.mgso4=true;
+    selected.calac=false;selected.mglac=false;selected.khco3=true;selected.nahco3=true;
+  }else{
+    selected.cacl2=true;selected.calac=true;selected.mgso4=true;selected.mglac=true;selected.khco3=true;selected.nahco3=true;
+  }
+  renderMats();updateAll();
+}
+function setSilicaEnabled(enabled){silicaEnabled=!!enabled;$('silicaNo').classList.toggle('active',!silicaEnabled);$('silicaYes').classList.toggle('active',silicaEnabled);$('silicaPanel').classList.toggle('hidden',!silicaEnabled);updateSilicaUI();updateAll();}
+function setSilicaRoute(route){silicaRoute=route;updateSilicaUI();updateAll();}
+function silicaInputChanged(){updateSilicaUI();updateAll();}
+function updateSilicaUI(){
+  if(!$('silicaRouteNote'))return;
+  const r=SILICA_ROUTES[silicaRoute]||SILICA_ROUTES.silica;
+  $('silicaRoute').value=silicaRoute;
+  $('silicaTargetBox').classList.toggle('hidden',silicaRoute==='silica');
+  $('silicaPowderBox').classList.toggle('hidden',silicaRoute!=='silica');
+  $('silicaAssayBox').classList.toggle('hidden',silicaRoute!=='liquid');
+  $('silicaKBox').classList.toggle('hidden',silicaRoute!=='potassium');
+  $('silicaRouteNote').innerHTML=`<strong>${r.name}</strong><br>${r.note}`;
+}
+function renderMats(){
+  const rec=MAT.filter(m=>m.recommended),more=MAT.filter(m=>!m.recommended);
+  const matHtml=m=>{
+    const ion=`补充：${m.cation||''}${m.catN>1?'×'+m.catN:''}${m.anion?` / ${m.anion}${m.anN>1?'×'+m.anN:''}`:''}`;
+    const warn=m.tier==='推荐'?'':`<small class="warning-text">${m.tier}物质：可能带来沉淀、浑浊、盐感、碱感、络合钝化或特殊摄入风险。</small>`;
+    const open=openMatDetails.has(m.id);
+    return `<div class="mat-item"><div class="mat-compact" onclick="toggleMatDetail('${m.id}',event)"><b>${m.name}</b><label class="mat-check" onclick="event.stopPropagation()"><input type="checkbox" ${selected[m.id]?'checked':''} onchange="toggleMat('${m.id}',this.checked)"><span>✓</span></label></div><div class="mat-detail ${open?'show':''}"><small>${m.role} · ${m.tip}</small><small>${ion}</small><small class="purity-note">称量按纯度 ${(m.purity*100).toFixed(0)}% 换算</small>${warn}</div></div>`;
+  };
+  $('recommendedMats').innerHTML=rec.map(matHtml).join('');
+  $('otherMats').innerHTML=more.map(matHtml).join('');
+  $('moreMatsBox').classList.toggle('hidden',!moreOpen);
+  $('moreArrow').textContent=moreOpen?'▴':'▾';
+}
+function toggleMoreMats(){moreOpen=!moreOpen;renderMats();}
+function toggleMat(id,checked){const m=MAT.find(x=>x.id===id);selected[id]=checked;const groupCount=MAT.filter(x=>selected[x.id]&&x.group===m.group).length;if(!checked&&['钙源','镁源','缓冲 / 钾钠'].includes(m.group)&&groupCount===0){selected[id]=true;alert('该功能组至少保留一种物质。');}renderMats();updateAll();}
+function setOutputMode(mode){
+  outputMode=mode;$('modePremix').classList.toggle('active',mode==='premix');$('modeDirect').classList.toggle('active',mode==='direct');
+  syncTargetPresets();$('customTargetBox').classList.add('hidden');$('targetCustomBtn').classList.remove('active');setTargetPreset(mode==='premix'?0:1);
+}
+const calcWeight=m=>m.tier==='推荐'?1:(m.tier==='谨慎'?0.55:0.18);
+function targetIons(){
+  const p=PROFILE[selectedBean],f=+$('floral').value/100,s=+$('sweet').value/100,a=+$('acid').value/100,bt=+$('bitter').value/100,keep=1-a,neut=budget().left/200;
+  // 2026-06 校准：原公式对 Ca/Mg/HCO3 的滑块放大过强，半有机体系会被推到过高的质量折算 TDS。
+  // 这里改为：豆种基准靶点 + 小幅风味修正，并以电导等效 TDS 作为主判断。
+  const ca=clamp(p.t.ca+3.5*s+2.5*a+2.0*bt-2.2*f-1.0*keep+0.8*neut,4,18);
+  const mg=clamp(p.t.mg+3.2*f+2.2*keep-2.5*bt-1.6*a-1.2*s+0.5*neut,5,22);
+  const hco3=clamp(p.t.hco3+8*a+4*bt+3*s-5*f-2.5*keep+1.0*neut,10,48);
+  const naShare=clamp(p.t.na+0.07*bt+0.03*a-0.03*f,0.25,0.65);
+  return {ca,mg,hco3,naShare};
+}
+function allocateCationMgL(targetMgL,ion,groupName){const mats=MAT.filter(m=>selected[m.id]&&m.group===groupName&&m.cation===ion),out={};if(!mats.length)return out;const totalMoles5L=targetMgL*5/(IONM[ion]*1000),sumW=mats.reduce((s,m)=>s+calcWeight(m),0);mats.forEach(m=>{const share=calcWeight(m)/sumW;const saltMoles=totalMoles5L*share/m.catN;out[m.id]=saltMoles*m.mw/m.purity;});return out;}
+function computeSilicaAddon(baseSaltTotal=0){
+  const r=SILICA_ROUTES[silicaRoute]||SILICA_ROUTES.silica;
+  const out={enabled:false,route:r.id,name:r.name,targetMgL:0,nominalSiO2MgL:0,dissolvedSiO2MgL:0,siMoles:0,alkEq:0,naEq:0,kEq:0,doseG:0,doseMl:0,dissolvedMassG:0,solidInPremix:false,warning:r.note};
+  if(!silicaEnabled)return out;
+  out.enabled=true;
+  if(r.id==='silica'){
+    const pct=clamp(+$('silicaPowderPct').value||0,0,2);
+    out.doseG=baseSaltTotal>0?baseSaltTotal*pct/Math.max(.001,100-pct):0;
+    out.nominalSiO2MgL=out.doseG*r.purity/5*1000;
+    out.targetMgL=out.nominalSiO2MgL;out.dissolvedSiO2MgL=0;out.siMoles=0;out.dissolvedMassG=0;out.solidInPremix=true;out.powderPct=pct;
+  }else if(r.id==='liquid'){
+    const target=clamp(+$('silicaTarget').value||0,0,10),assay=Math.max(.1,+$('silicaAssay').value||10),siO2g=target*5/1000;
+    out.targetMgL=target;out.nominalSiO2MgL=target;out.dissolvedSiO2MgL=target;out.siMoles=siO2g/60.084;out.doseMl=target*5/assay;out.dissolvedMassG=siO2g;out.assay=assay;
+  }else if(r.id==='potassium'){
+    const target=clamp(+$('silicaTarget').value||0,0,10),siPct=clamp(+$('silicaKSiO2').value||55,1,90)/100,kPct=clamp(+$('silicaKK2O').value||30,0,70)/100,siO2g=target*5/1000;
+    out.targetMgL=target;out.nominalSiO2MgL=target;out.dissolvedSiO2MgL=target;out.siMoles=siO2g/60.084;out.doseG=siO2g/siPct;out.dissolvedMassG=out.doseG;out.solidInPremix=true;
+    const k2oMoles=out.doseG*kPct/94.196;out.kEq=k2oMoles*2;out.alkEq=k2oMoles*2;out.siPct=siPct;out.kPct=kPct;
+  }
+  return out;
+}
+function allocateBufferByAlkalinity(hco3MgL,naShare,pre){
+  pre=pre||{alkEq:0,naEq:0,kEq:0};
+  const mats=MAT.filter(m=>selected[m.id]&&m.alkEq>0),out={};
+  if(!mats.length)return out;
+  const totalEq=hco3MgL*5/(IONM.HCO3*1000);
+  const remainEq=Math.max(0,totalEq-(pre.alkEq||0));
+  if(remainEq<=0)return out;
+  const targetNa=totalEq*naShare,targetK=totalEq*(1-naShare);
+  let needNa=Math.max(0,targetNa-(pre.naEq||0));
+  let needK=Math.max(0,targetK-(pre.kEq||0));
+  let needSum=needNa+needK;
+  if(needSum<=0){needNa=remainEq*naShare;needK=remainEq*(1-naShare);needSum=remainEq;}
+  needNa=remainEq*needNa/needSum; needK=remainEq*needK/needSum;
+  const naMats=mats.filter(m=>m.cation==='Na'),kMats=mats.filter(m=>m.cation==='K'),other=mats.filter(m=>!['Na','K'].includes(m.cation));
+  const spread=(list,eqNeed)=>{
+    if(!list.length||eqNeed<=0)return;
+    const sumW=list.reduce((s,m)=>s+calcWeight(m),0);
+    list.forEach(m=>{
+      const share=calcWeight(m)/sumW,eqPart=eqNeed*share,saltMoles=eqPart/m.alkEq;
+      out[m.id]=(out[m.id]||0)+saltMoles*m.mw/m.purity;
+    });
+  };
+  spread(naMats,needNa);
+  if(kMats.length)spread(kMats,needK);else if(other.length)spread(other,needK);else spread(naMats,needK);
+  return out;
+}
+function allocateTasteSalts(){const out={};if(selected['nacl']&&+$('bitter').value>55)out['nacl']=0.006+0.00035*(+$('bitter').value-55);if(selected['kcl']&&+$('sweet').value>70)out['kcl']=0.004+0.0002*(+$('sweet').value-70);return out;}
+function computeBaseAmounts(){const t=targetIons(),out={},preSilica=(silicaEnabled&&silicaRoute==='potassium')?computeSilicaAddon(0):{alkEq:0,naEq:0,kEq:0};[allocateCationMgL(t.ca,'Ca','钙源'),allocateCationMgL(t.mg,'Mg','镁源'),allocateBufferByAlkalinity(t.hco3,t.naShare,preSilica),allocateTasteSalts()].forEach(part=>Object.entries(part).forEach(([id,g])=>out[id]=(out[id]||0)+g));const saltTotal=Object.values(out).reduce((s,v)=>s+v,0);lastSilicaBase=computeSilicaAddon(saltTotal);return out;}
+function normalizeTweaked(base){const ids=Object.keys(base).filter(id=>base[id]>1e-8),totalBase=ids.reduce((s,id)=>s+base[id],0);let raw={};ids.forEach(id=>{raw[id]=base[id]*(1+tweak[id]/100);if(raw[id]<0)raw[id]=0;});const rawTotal=ids.reduce((s,id)=>s+raw[id],0)||1,out={};ids.forEach(id=>out[id]=raw[id]*totalBase/rawTotal);return out;}
+function ionMolesFromSalt(m,grams,ion){if(grams<=0)return 0;const mol=grams*m.purity/m.mw;let n=0;if(m.cation===ion)n+=mol*m.catN;if(m.anion===ion)n+=mol*m.anN;return n;}
+function ionLoads(amounts,silica){
+  const mols={Ca:0,Mg:0,Na:0,K:0,HCO3:0,CO3:0,Cl:0,SO4:0,Lactate:0,Citrate:0,Gluconate:0,Silica:0,SilicaAlk:0};
+  Object.entries(amounts).forEach(([id,g])=>{
+    const m=MAT.find(x=>x.id===id);
+    Object.keys(mols).filter(x=>!['Silica','SilicaAlk'].includes(x)).forEach(ion=>mols[ion]+=ionMolesFromSalt(m,g,ion));
+  });
+  if(silica&&silica.enabled){
+    mols.Silica+=silica.siMoles||0;
+    mols.SilicaAlk+=silica.alkEq||0;
+    mols.Na+=silica.naEq||0;
+    mols.K+=silica.kEq||0;
+  }
+  const mgL={};
+  Object.keys(mols).forEach(ion=>{
+    const mm=ion==='Silica'?60.084:(ion==='SilicaAlk'?61.017:IONM[ion]);
+    mgL[ion]=mols[ion]*mm*1000/5;
+  });
+  return {mols,mgL};
+}
+function boundFreeEstimate(mols){const divalent=mols.Ca+mols.Mg,ligandCapacity=mols.Citrate*.90+mols.Lactate*.20+mols.Gluconate*.25,bound=Math.min(divalent,ligandCapacity),freeBefore=Math.max(0,divalent-bound),precip=Math.min(freeBefore,mols.CO3*.85+Math.max(0,mols.HCO3-0.001)*.10),free=Math.max(0,freeBefore-precip);return {divalent,bound,free,precip,boundRate:divalent?bound/divalent:0,freeRate:divalent?free/divalent:0,precipRate:divalent?precip/divalent:0};}
+function evaluate(loads,bf,silica){
+  const alk=loads.HCO3+loads.CO3*2.033+(silica&&silica.enabled?silica.alkEq*61.017*1000/5:0);
+  const scale=clamp((loads.Ca/35)*(alk/45)*5+bf.precipRate*6,0,10);
+  const haze=clamp((loads.CO3/8)*4+bf.precipRate*7,0,10);
+  const chelate=clamp((loads.Citrate/20)*5+bf.boundRate*5,0,10);
+  const salt=clamp((loads.Na/35)*3+(loads.K/55)*3+(loads.Cl/60)*3,0,10);
+  const sulfate=clamp((loads.SO4/60)*5,0,10);
+  const alkTaste=clamp((alk/60)*7+(loads.CO3/10)*3,0,10);
+  let silicateScale=0,silicaHaze=0;
+  if(silica&&silica.enabled){
+    if(silica.route==='potassium'){
+      silicateScale=clamp((silica.targetMgL/6)*2.2+((loads.Ca+loads.Mg)/25)*2.4+(alk/50)*1.5,0,10);
+      silicaHaze=clamp(silicateScale*.75,0,10);
+    }else if(silica.route==='silica'){
+      silicaHaze=clamp(silica.nominalSiO2MgL/1.5,0,10);
+      silicateScale=clamp(((loads.Ca+loads.Mg)/30)*(silica.nominalSiO2MgL/5),0,10);
+    }else{
+      silicaHaze=clamp(silica.targetMgL/12*2,0,10);
+      silicateScale=clamp(((loads.Ca+loads.Mg)/35)*(silica.targetMgL/8)*2,0,10);
+    }
+  }
+  return {alk,scale,haze,chelate,salt,sulfate,alkTaste,silicateScale,silicaHaze};
+}
+function effectiveTdsEstimate(total,bf,mols){
+  const massTds=total/5*1000;
+  const LAMBDA={Ca:119,Mg:106,Na:50.1,K:73.5,HCO3:44.5,CO3:138.6,Cl:76.3,SO4:160,Lactate:40,Citrate:70,Gluconate:35,SilicaAlk:44.5};
+  let ec=0;
+  Object.keys(LAMBDA).forEach(ion=>{const mmolL=(mols[ion]||0)/5*1000;ec+=mmolL*LAMBDA[ion];});
+  const meterTds=ec*0.50*clamp(1-bf.precipRate*0.35,0.70,1);
+  return {theoretical:massTds,effective:meterTds,ec};
+}
+function tdsAssessment(tds){
+  const range=PROFILE[selectedBean].tds||[85,120];
+  const low=range[0], high=range[1];
+  if(tds<low-10)return {cls:'tds-low',label:'低于目标',text:`当前电导等效 TDS 低于 ${PROFILE[selectedBean].name} 的建议区间 ${low}–${high} mg/L，水体缓冲和结构支撑可能不足，咖啡可能表现为空、尖、薄。`};
+  if(tds<=high)return {cls:'tds-ok',label:'豆种目标内',text:`当前电导等效 TDS 位于 ${PROFILE[selectedBean].name} 的建议区间 ${low}–${high} mg/L。该区间按豆种特性区分，不再用单一通用范围判断。`};
+  if(tds<=high+30)return {cls:'tds-mid',label:'高于目标，需谨慎',text:`当前电导等效 TDS 高于 ${PROFILE[selectedBean].name} 的建议区间 ${low}–${high} mg/L，可能增强结构和甜感，但也可能压香、钝化、矿物感加重。`};
+  return {cls:'tds-high',label:'明显高于目标',text:`当前电导等效 TDS 明显高于 ${PROFILE[selectedBean].name} 的建议区间 ${low}–${high} mg/L，不建议作为该豆种的默认水；应降低总盐量、碱度、Ca/Mg 或取消碳酸盐类物质。`};
+}
+function getComputed(){
+  const base=computeBaseAmounts();lastBase=base;
+  const amounts=normalizeTweaked(base),silica=lastSilicaBase||computeSilicaAddon(0);
+  const baseTotal=Object.values(amounts).reduce((s,v)=>s+v,0);
+  if(silica.enabled&&silica.route==='silica'){
+    const pct=silica.powderPct||0;silica.doseG=baseTotal*pct/Math.max(.001,100-pct);silica.nominalSiO2MgL=silica.doseG*.98/5*1000;silica.targetMgL=silica.nominalSiO2MgL;
+  }
+  const solidSilica=silica.enabled&&silica.solidInPremix?(silica.doseG||0):0;
+  const total=baseTotal+solidSilica;
+  const dissolvedTotal=baseTotal+(silica.dissolvedMassG||0);
+  const loadsObj=ionLoads(amounts,silica),bf=boundFreeEstimate(loadsObj.mols);
+  const ev=evaluate(loadsObj.mgL,bf,silica);
+  const tdsObj=effectiveTdsEstimate(dissolvedTotal,bf,loadsObj.mols),tdsEval=tdsAssessment(tdsObj.effective);
+  lastComputed={amounts,total,baseTotal,dissolvedTotal,loads:loadsObj.mgL,mols:loadsObj.mols,bf,ev,tdsObj,tdsEval,silica};
+  return lastComputed;
+}
+function targetDisplay(){return Math.max(.1,+$('targetAmount').value||(outputMode==='premix'?50:5));}
+function calcAndGo(){updateAll();goPage('plan');}
+function updateAll(){updateScores();renderMats();const c=getComputed(),target=targetDisplay(),dose5=c.total,dose1=c.total/5;$('mixSummary').textContent=outputMode==='premix'?`目标总量 ${fmt(target,1)}g`:`配方水 ${fmt(target,1)}L`;$('dose1L').textContent=fmt(dose1,3)+'g';$('dose5L').textContent=fmt(dose5,3)+'g';$('tdsTheory').textContent=fmt(c.tdsObj.theoretical,0)+'mg/L';$('tdsEffective').textContent=fmt(c.tdsObj.effective,0)+'mg/L';$('tdsBadge').className='tds-state '+c.tdsEval.cls;$('tdsBadge').textContent=c.tdsEval.label;$('tdsText').innerHTML=`${c.tdsEval.text} <span class="helper">质量折算 TDS 约 ${fmt(c.tdsObj.theoretical,0)} mg/L；电导等效 TDS 预测约 ${fmt(c.tdsObj.effective,0)} mg/L。实测 TDS 笔通常按电导换算，不会等于盐类总质量；水合水、有机酸根导电差异、络合与沉淀都会让实测值低于质量折算值。当前豆种建议区间：${PROFILE[selectedBean].tds[0]}–${PROFILE[selectedBean].tds[1]} mg/L。</span>`;
+
+  if(c.silica&&c.silica.enabled){
+    const s=c.silica;
+    $('silicaSummary').classList.remove('hidden');
+    if(s.route==='silica'){
+      $('silicaSummary').innerHTML=`<strong>二氧化硅调粉：</strong>最终母粉占比 ${fmt(s.powderPct||0,1)}%；每5L母粉中约含 ${fmt(s.doseG*1000,1)}mg产品，名义SiO₂约 ${fmt(s.nominalSiO2MgL,2)}mg/L。按抗结/分散辅助处理，不计入有效可溶硅与电导TDS。整袋加入5L后充分摇匀，密闭静置24小时，使用前再次摇匀。`;
+    }else if(s.route==='liquid'){
+      $('silicaSummary').innerHTML=`<strong>偏硅酸液体：</strong>目标 ${fmt(s.targetMgL,1)}mg/L as SiO₂；每5L单独添加 ${fmt(s.doseMl,3)}mL。液体不进入干母粉总量，必须按标签浓度和载体成分复核。`;
+    }else{
+      $('silicaSummary').innerHTML=`<strong>粉末硅酸钾：</strong>目标 ${fmt(s.targetMgL,1)}mg/L as SiO₂；每5L母粉中约 ${fmt(s.doseG*1000,1)}mg产品。已计入K⁺并抵扣约 ${fmt(s.alkEq*61.017*1000/5,2)}mg/L as HCO₃⁻的缓冲当量。`;
+    }
+  }else{
+    $('silicaSummary').classList.add('hidden');$('silicaSummary').innerHTML='';
+  }
+
+
+  const naShare = (c.loads.Na+c.loads.K)?c.loads.Na/(c.loads.Na+c.loads.K):0;
+  const hard = c.loads.Ca*2.497 + c.loads.Mg*4.118;
+  const tags=[
+    ['Ca-HCO₃ 水垢 / 沉淀', c.ev.scale],
+    ['碳酸盐浑浊', c.ev.haze],
+    ['柠檬酸 / 有机酸络合', c.ev.chelate],
+    ['钠钾 / 氯盐感', c.ev.salt],
+    ['硫酸根干涩', c.ev.sulfate],
+    ['碱感 / 皂感', c.ev.alkTaste],
+    ['硅酸盐沉淀', c.ev.silicateScale],
+    ['硅胶 / 悬浮浑浊', c.ev.silicaHaze]
+  ];
+  v2SetText('v2MainId','计算');
+  v2SetText('v2MainName',PROFILE[selectedBean].name+'｜配方2.2版');
+  v2SetText('tdsTargetRange',PROFILE[selectedBean].tds[0]+'–'+PROFILE[selectedBean].tds[1]+'mg/L');
+  v2SetText('v2CaMgL',fmt(c.loads.Ca,1)+'mg/L');
+  v2SetText('v2MgMgL',fmt(c.loads.Mg,1)+'mg/L');
+  v2SetText('v2Hco3MgL',fmt(c.ev.alk,1)+'mg/L');
+  v2SetText('v2NaShare',fmt(naShare*100,0)+'%');
+  v2SetText('v2BoundRate',fmt(c.bf.boundRate*100,0)+'%');
+  v2SetText('v2FreeRate',fmt(c.bf.freeRate*100,0)+'%');
+  v2SetText('v2PrecipRate',fmt(c.bf.precipRate*100,0)+'%');
+  v2SetText('v2Hardness',fmt(hard,1)+'mg/L');
+  v2SetBar('v2BarCa',c.loads.Ca/35);
+  v2SetBar('v2BarMg',c.loads.Mg/35);
+  v2SetBar('v2BarHco3',c.ev.alk/60);
+  v2SetBar('v2BarNa',naShare);
+  v2SetBar('v2BarBound',c.bf.boundRate);
+  v2SetBar('v2BarFree',c.bf.freeRate);
+  v2SetBar('v2BarPrecip',c.bf.precipRate);
+  v2SetBar('v2BarHard',hard/140);
+  v2SetHTML('v2ReactionTags',tags.map(([label,v])=>`<span class="v2-tag ${riskClass(v)}">${label}：${fmt(v,1)} / 10（${riskText(v)}）</span>`).join(''));
+  v2SetText('v2Intent',PROFILE[selectedBean].note+' 当前版本额外显示：离子结合负载率、空载率、潜在沉淀负载率，用于辅助判断“被配体绑定的二价离子”和“可能直接参与萃取/口感或沉淀的空载离子”。');
+  v2SetText('v2BestFor','适合手冲 RO 水复矿研究、豆种定向方案对比、不同阴离子盐型比较，以及观察离子结合负载 / 空载变化的场景。');
+  v2SetText('v2Adv','可以把同一 Ca / Mg / 碱度目标拆解到不同盐型，观察有机酸根、氯根、硫酸根、碳酸氢根和碳酸根的风味与反应差异。');
+  v2SetText('v2Draw','结合负载高可能弱化自由二价离子的直接结构感；空载高则可能提高萃取触感和沉淀风险。碳酸盐、氯盐、硫酸盐、钠钾负担都可能带来负面口感或安全边界问题。');
+  const v2IonRows=[
+    ['总硬度 as CaCO₃',fmt(hard,1)+'mg/L','Ca、Mg 共同决定结构和水垢风险；高硬度会压低精细香气并增加沉淀概率。'],
+    ['碱度 as HCO₃⁻',fmt(c.ev.alk,1)+'mg/L','HCO₃⁻ / CO₃²⁻中和咖啡酸；过低尖酸，过高酸质消失、灰暗。'],
+    ['Cl⁻ 氯根',fmt(c.loads.Cl,1)+'mg/L','来自氯化钙 / 镁 / 钠 / 钾；高时可能咸、苦、腐蚀感。'],
+    ['SO₄²⁻ 硫酸根',fmt(c.loads.SO4,1)+'mg/L','来自 MgSO₄；可增强清晰度，但高时矿物、干涩。'],
+    ['乳酸根',fmt(c.loads.Lactate,1)+'mg/L','来自乳酸钙 / 镁；柔化口感，高时钝、乳酸盐感。'],
+    ['柠檬酸根',fmt(c.loads.Citrate,1)+'mg/L','能络合 Ca / Mg，改变结构、酸质和香气释放。'],
+    ['葡萄糖酸根',fmt(c.loads.Gluconate,1)+'mg/L','较柔，用量大时可能甜钝或药感。'],
+    ['CO₃²⁻ 碳酸根',fmt(c.loads.CO3,1)+'mg/L','强碱性和低溶解风险来源；与 Ca / Mg 易形成浑浊 / 沉淀。'],
+    ['可溶硅 as SiO₂',fmt(c.loads.Silica||0,1)+'mg/L','硅酸钾/钠或稳态硅提供的溶解硅当量；SiO₂ 粉末不按快速溶解计入。'],
+    ['硅酸盐碱度当量',fmt(c.loads.SilicaAlk||0,1)+'mg/L as HCO₃⁻','硅酸钾/钠附带的碱性当量；已从原碳酸氢盐预算中抵扣，并计入电导等效 TDS。'],
+    ['结合负载率',fmt(c.bf.boundRate*100,1)+'%','表示有多少二价离子被柠檬酸根、乳酸根、葡萄糖酸根等配位 / 关联；高结合负载通常更柔和，但结构表达可能变钝。'],
+    ['空载率',fmt(c.bf.freeRate*100,1)+'%','表示未被明显配位且未估算为沉淀负载的二价离子比例；高空载更直接参与结构和口感，也更容易带来硬边。'],
+    ['潜在沉淀负载率',fmt(c.bf.precipRate*100,1)+'%','表示可能被碳酸根 / 高碱度推向沉淀或浑浊路径的二价离子比例；高时不适合母粉长期使用。']
+  ];
+  v2SetHTML('v2IonBody',v2IonRows.map(r=>`<tr><td>${r[0]}</td><td class="r">${r[1]}</td><td>${r[2]}</td></tr>`).join(''));
+$('ionExplain').innerHTML=`<div class="acc-panel-grid"><div class="acc-metric"><small>Ca²⁺</small><b>${fmt(c.loads.Ca,1)} mg/L</b></div><div class="acc-metric"><small>Mg²⁺</small><b>${fmt(c.loads.Mg,1)} mg/L</b></div><div class="acc-metric"><small>碱度 as HCO₃⁻</small><b>${fmt(c.ev.alk,1)} mg/L</b></div><div class="acc-metric"><small>Na 占 Na+K</small><b>${fmt((c.loads.Na+c.loads.K)?c.loads.Na/(c.loads.Na+c.loads.K)*100:0,0)}%</b></div><div class="acc-metric"><small>结合负载率</small><b>${fmt(c.bf.boundRate*100,1)}%</b></div><div class="acc-metric"><small>空载率</small><b>${fmt(c.bf.freeRate*100,1)}%</b></div><div class="acc-metric"><small>可溶硅 as SiO₂</small><b>${fmt(c.loads.Silica||0,1)} mg/L</b></div></div><div class="acc-warning">说明：结合负载高通常更柔和但结构感下降；空载率高会让 Ca/Mg 更直接参与口感和沉淀路径。该值为估算，用于方向判断，不等同于实验室络合平衡计算。</div>`;$('riskExplain').innerHTML=`<div class="acc-panel-grid"><div class="acc-metric"><small>Ca-HCO₃沉淀</small><b>${fmt(c.ev.scale,1)} / 10</b></div><div class="acc-metric"><small>碳酸盐浑浊</small><b>${fmt(c.ev.haze,1)} / 10</b></div><div class="acc-metric"><small>有机酸络合</small><b>${fmt(c.ev.chelate,1)} / 10</b></div><div class="acc-metric"><small>钠钾/氯盐感</small><b>${fmt(c.ev.salt,1)} / 10</b></div><div class="acc-metric"><small>硫酸根干涩</small><b>${fmt(c.ev.sulfate,1)} / 10</b></div><div class="acc-metric"><small>碱感/皂感</small><b>${fmt(c.ev.alkTaste,1)} / 10</b></div><div class="acc-metric"><small>硅酸盐沉淀</small><b>${fmt(c.ev.silicateScale,1)} / 10</b></div><div class="acc-metric"><small>硅胶/悬浮</small><b>${fmt(c.ev.silicaHaze,1)} / 10</b></div></div><div class="acc-warning">风险进入中高区时，优先降低碱度、碳酸盐、CaCl₂ 或 Na/K 负载；若只是结构不足，可小幅提高温和钙盐或镁盐，而不是直接提高强碱盐。</div>`;renderRecipeCards(target);renderRiskPage();}
+function renderRecipeCards(target){
+  const c=lastComputed,total=c.total,lines=[],scale=outputMode==='premix'?target/total:target/5;
+  if(c.silica&&c.silica.enabled){
+    const s=c.silica,id='recipe-silica',open=openRecipeId===id;
+    let amount,detail;
+    if(s.route==='liquid'){
+      amount=`${fmt(s.doseMl*(outputMode==='direct'?target/5:1),3)}mL`;
+      detail=`单独液体添加，不计入干母粉目标总量。标签浓度：${fmt(s.assay||0,1)}mg SiO₂/mL；目标：${fmt(s.targetMgL,1)}mg/L as SiO₂。${s.warning}`;
+    }else{
+      const adj=outputMode==='premix'?s.doseG/total*target:s.doseG*scale;
+      amount=`${fmt(adj,3)}g`;
+      detail=s.route==='silica'?`母粉占比 ${fmt(s.powderPct||0,1)}%；按98%食品级亲水无定形SiO₂计算。${s.warning}`:`产品组成：SiO₂ ${fmt((s.siPct||0)*100,1)}%，K₂O ${fmt((s.kPct||0)*100,1)}%；目标 ${fmt(s.targetMgL,1)}mg/L as SiO₂。${s.warning}`;
+    }
+    lines.push(`<div class="recipe-card silica-card ${open?'open':''}" id="${id}"><div class="recipe-summary"><div class="recipe-amount">${amount}</div><div class="recipe-name">${s.name}</div><button class="recipe-arrow" onclick="toggleRecipeDetail('${id}',event)">▾</button></div><div class="recipe-detail"><div class="detail-line">${detail}</div></div></div>`);
+  }
+  Object.entries(c.amounts).filter(([id,g])=>g>1e-8).sort((a,b)=>b[1]-a[1]).forEach(([id,g])=>{
+    const m=MAT.find(x=>x.id===id),base=lastBase[id]||g,delta=g-base,adj=outputMode==='premix'?g/total*target:g*scale,cardId='recipe-'+id,open=openRecipeId===cardId;
+    lines.push(`<div class="recipe-card ${open?'open':''}" id="${cardId}"><div class="recipe-summary"><div class="recipe-amount">${fmt(adj,3)}g</div><div class="recipe-name">${m.name}</div><button class="recipe-arrow" onclick="toggleRecipeDetail('${cardId}',event)">▾</button></div><div class="recipe-detail" onclick="event.stopPropagation()"><div class="detail-line">${m.role} · ${m.tip}</div><div class="detail-line purity-note">按纯度 ${(m.purity*100).toFixed(0)}% 换算</div><div class="detail-line">基础换算：1L ${fmt(g/5,4)}g；5L ${fmt(g,4)}g${Math.abs(delta)>1e-5?`；当前微调 ${delta>0?'+':''}${fmt(delta,3)}g / 5L`:''}</div><div class="tweak-head"><span class="helper">局部微调</span><span class="tweak-toggle">${tweak[id]>0?'+':''}${tweak[id]}%</span></div><div class="tweak-body show"><input type="range" min="-30" max="30" step="1" value="${tweak[id]}" oninput="setTweak('${id}',this.value)" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()"><div class="tweak-labels"><span>降低</span><span id="tweakVal-${id}">${tweak[id]}%</span><span>增加</span></div></div></div></div>`);
+  });
+  if(optimizationMessage)lines.unshift(`<div class="optim-change"><strong class="orange-text">自动优化已应用：</strong> ${optimizationMessage}</div>`);
+  $('recipeList').innerHTML=lines.join('');
+}
+function toggleTweak(id,btn){toggleRecipeDetail(id,event);}
+function setTweak(id,val){tweak[id]=+val;optimizationMessage='';updateAll();}
+function renderRiskPage(){
+  const c=lastComputed,chips=[],scores=[c.ev.scale,c.ev.haze,c.ev.salt,c.ev.alkTaste,c.ev.sulfate];
+  chips.push(`<span class="risk-chip ${riskClass(c.ev.scale)}">沉淀/水垢：${riskText(c.ev.scale)}</span>`);
+  chips.push(`<span class="risk-chip ${riskClass(c.ev.haze)}">碳酸盐浑浊：${riskText(c.ev.haze)}</span>`);
+  chips.push(`<span class="risk-chip ${riskClass(c.ev.salt)}">盐感：${riskText(c.ev.salt)}</span>`);
+  chips.push(`<span class="risk-chip ${riskClass(c.ev.alkTaste)}">碱感：${riskText(c.ev.alkTaste)}</span>`);
+  chips.push(`<span class="risk-chip ${riskClass(c.ev.sulfate)}">硫酸根干涩：${riskText(c.ev.sulfate)}</span>`);
+  if(c.silica&&c.silica.enabled){scores.push(c.ev.silicateScale,c.ev.silicaHaze);chips.push(`<span class="risk-chip ${riskClass(c.ev.silicateScale)}">硅酸盐沉淀：${riskText(c.ev.silicateScale)}</span>`);chips.push(`<span class="risk-chip ${riskClass(c.ev.silicaHaze)}">硅胶/悬浮：${riskText(c.ev.silicaHaze)}</span>`);}
+  $('riskChips').innerHTML=chips.join('');
+  const items=[];
+  items.push({title:'Ca-HCO₃水垢/沉淀',txt:`评分 ${fmt(c.ev.scale,1)}/10。Ca²⁺与碱度同时偏高时可能形成白色沉淀和水垢。`});
+  items.push({title:'碳酸盐浑浊',txt:`评分 ${fmt(c.ev.haze,1)}/10。重点观察配制后1小时与24小时是否返浑。`});
+  if(c.silica&&c.silica.enabled){
+    if(c.silica.route==='silica')items.push({title:'二氧化硅调粉',txt:`评分 ${fmt(c.ev.silicaHaze,1)}/10。该路线按抗结和分散辅助处理，24小时静置后若出现白色沉积，摇匀只能重新悬浮，不能视为完全溶解。`});
+    if(c.silica.route==='potassium')items.push({title:'硅酸钾兼容性',txt:`评分 ${fmt(c.ev.silicateScale,1)}/10。整袋必须直接加入5L正在搅拌的RO水，禁止先用小体积水制成高浓母液。`});
+    if(c.silica.route==='liquid')items.push({title:'偏硅酸液体',txt:'必须按商品标签的SiO₂当量和载体组成核算，先加入大体积RO水稀释，再加入母粉体系。'});
+  }
+  items.push({title:'钠钾与氯盐感',txt:`评分 ${fmt(c.ev.salt,1)}/10。Na⁺、K⁺或Cl⁻偏高时可能产生咸、苦、药感。`});
+  items.push({title:'有机酸络合与空载',txt:`结合负载率 ${fmt(c.bf.boundRate*100,1)}%，空载率 ${fmt(c.bf.freeRate*100,1)}%。`});
+  items.push({title:'TDS与整体强度',txt:`电导等效TDS估算约 ${fmt(c.tdsObj.effective,0)}mg/L。`});
+  $('riskItems').innerHTML=items.map(x=>`<div class="risk-item"><h4>${x.title}</h4><p>${x.txt}</p></div>`).join('');
+  const hasMediumHigh=scores.some(v=>v>=5.2);
+  $('optimAction').classList.toggle('hidden',!hasMediumHigh);
+  $('riskReturnAction').classList.toggle('hidden',hasMediumHigh);
+  $('optimAdvice').innerHTML=hasMediumHigh?'检测到至少一项中风险或高风险，可执行一键优化并返回方案页。':'当前整体方案未出现中风险或高风险，可点击“返回”回到方案页的各种物质用量区域。';
+  $('optimChange').classList.toggle('hidden',!optimizationMessage);$('optimChange').innerHTML=optimizationMessage||'';
+}
+function optimizeRecipe(){const c=lastComputed,changes=[];const addDelta=(id,dv)=>{if(lastBase[id]){tweak[id]=clamp(tweak[id]+dv,-30,30);const name=MAT.find(m=>m.id===id).name;changes.push(`${name} ${dv>0?'+':''}${dv}%`);openRecipeId='recipe-'+id;}};if(c.ev.scale>5.2||c.ev.haze>5.2||c.ev.alkTaste>5.2){['khco3','nahco3','cacl2','caco3','k2co3','na2co3'].forEach(id=>addDelta(id,-8));['mgso4','mglac'].forEach(id=>addDelta(id,4));}if(c.ev.sulfate>5.2){addDelta('mgso4',-8);addDelta('mglac',6);}if(c.ev.salt>5.2){['nacl','kcl','mgcl2'].forEach(id=>addDelta(id,-10));['mglac','calac'].forEach(id=>addDelta(id,3));}if(c.tdsObj.effective<45){['mgso4','calac','khco3'].forEach(id=>addDelta(id,4));}if(c.tdsObj.effective>140){['khco3','nahco3','cacl2','mgso4'].forEach(id=>addDelta(id,-5));['calac','mglac'].forEach(id=>addDelta(id,3));}if(c.silica&&c.silica.enabled&&(c.ev.silicateScale>5.2||c.ev.silicaHaze>5.2)){if(c.silica.route==='silica'){const old=+$('silicaPowderPct').value||0,newVal=Math.max(0,old-.1);$('silicaPowderPct').value=newVal;changes.push(`SiO₂调粉比例 ${old.toFixed(1)}%→${newVal.toFixed(1)}%`);}else{const old=+$('silicaTarget').value||0,newVal=Math.max(0,old-1);$('silicaTarget').value=newVal;changes.push(`SiO₂当量 ${old.toFixed(1)}→${newVal.toFixed(1)}mg/L`);}}optimizationMessage=changes.length?('已自动微调：'+changes.join('；')):'当前配方整体处于较稳妥区间，未进行自动调整。';updateAll();goPage('plan');}
+
+function toggleFold(id){
+  const el = $(id);
+  if(!el) return;
+  el.classList.toggle('open');
+}
+
+function openModal(type){$('modal').classList.add('show');if(type==='tds'){$('modalTitle').textContent='TDS 说明';$('modalBody').innerHTML=`<p><strong>TDS</strong> 表示总溶解固体，常以 mg/L 或 ppm 表示。当前工具区分两个值：</p><ul><li><strong>质量折算 TDS：</strong>把加入的全部盐质量直接折成 mg/L，会包含结晶水、低电导有机酸根等质量，因此通常偏高。</li><li><strong>电导等效 TDS：</strong>按主要离子的摩尔浓度和近似离子电导折算，更接近常见 TDS 笔读数。</li></ul><p>你实测值比旧预测低约 100 mg/L，主要原因就是旧版把“盐类总质量”直接当成 TDS 笔读数。实际 TDS 笔是电导率换算，水合水、乳酸根/葡萄糖酸根/柠檬酸根的低电导贡献、络合状态、沉淀都会让读数低于质量折算值。新版主判断采用电导等效 TDS。</p><ul><li>约 <strong>40–120 mg/L</strong>：常规精品手冲复矿水合理区间。</li><li>低于 <strong>40 mg/L</strong>：可能偏薄、偏尖、支撑不足。</li><li>约 <strong>120–180 mg/L</strong>：偏高，可能增强结构，但也可能压香、钝化、矿物感重。</li><li>高于 <strong>180 mg/L</strong>：高风险，不建议常规使用。</li></ul>`;}}
+function closeModal(){$('modal').classList.remove('show');}
+function toggleAcc(btn){btn.parentElement.classList.toggle('open');btn.querySelector('span:last-child').textContent=btn.parentElement.classList.contains('open')?'▴':'▾';}
+function init(){renderBeans();renderMats();syncTargetPresets();setOutputMode('premix');selectBean('geisha');updateSilicaUI();setSaltSystem('half');setSilicaEnabled(false);updateAll();goPage('home');document.addEventListener('click',e=>{if(!e.target.closest('.recipe-card'))closeRecipeDetails();});}
+init();
+</script>
 </body>
 </html>

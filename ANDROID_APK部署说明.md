@@ -1,29 +1,32 @@
-# 萃离 Android APK 自动构建说明（2.4）
+# 萃离 Android APK 自动构建部署说明（2.5）
 
-## 这次更新包含什么
+## 本版改动
+- APP 图标使用新上传的完整方形水滴图片，不进行内容裁切。
+- 旧版 Android 图标仅缩放；自适应图标增加安全留白，尽量避免系统圆形/圆角矩形遮罩裁掉波浪线。
+- “关于”内容最下方增加“返回”按钮。
+- 风险页面在所有项目均为低风险时显示“返回”按钮。
+- 该按钮会返回方案页，并自动定位到“各种物质用量”区域。
+- GitHub Actions 工作流已加入 Android SDK、Gradle、CRLF 与 exit code 127 修复。
 
-- APP 图标：已改为水滴图形。
-- 首页视觉：已改为新版“萃离 / BrewIon”起始页面海报。
-- 关于页面：加入小红书与个人微信二维码，仅嵌入二维码并附文字说明。
-- Android 工程：已直接包含在仓库包中，GitHub Actions 会基于该工程同步网页资源并编译 APK。
+## 上传方法
+1. 解压部署包。
+2. 打开 GitHub 仓库 `zjcrop/Brew-Water-Calibrato`。
+3. 确认当前分支为 `main`。
+4. 选择 `Add file` → `Upload files`。
+5. 上传解压目录内的全部内容，使 `index.html`、`android`、`assets`、`.github` 等直接位于仓库根目录。
+6. GitHub 网页批量上传有时会忽略隐藏目录 `.github`。上传后务必检查：
+   `.github/workflows/build-android-debug.yml`
+7. 提交说明建议填写：
+   `Update app icon and navigation to v2.5`
+8. 提交到 `main` 后，进入 `Actions` → `Build Android Debug APK`。
+9. 不要重新运行旧的失败记录，等待新提交自动产生的新任务。
+10. 构建成功后，在运行页面底部的 `Artifacts` 下载：
+    `Brew-Water-Calibrato-v2.5.0-debug`
+11. 解压后得到：
+    `Brew-Water-Calibrato-v2.5.0-debug.apk`
 
-## 你现在要做什么
+## 若 .github 没有上传
+单独在仓库新建或编辑：
+`.github/workflows/build-android-debug.yml`
 
-1. 下载并解压本压缩包。
-2. 将内部全部文件和文件夹上传覆盖到仓库 `zjcrop/Brew-Water-Calibrato` 的 `main` 分支根目录。
-3. 提交后，进入 GitHub 仓库的 `Actions` 页面。
-4. 找到工作流 **Build Android Debug APK**。
-5. 等待它完成；成功后在该运行页面底部 `Artifacts` 区域下载 `Brew-Water-Calibrato-v2.4.0-debug`。
-6. 解压 artifact 后即可得到 APK 文件。
-
-## 当前构建特征
-
-- 应用名称：萃离
-- Android 包名：com.zjcrop.brewwater
-- 版本号：2.4.0
-- 输出：Debug APK
-- 适用：真机测试、界面验证、功能联调
-
-## 说明
-
-当前仍为 Debug APK，不适合作为长期正式更新包。待这一步跑通后，下一步再继续做固定签名的 Release APK / AAB。
+内容以本部署包中的同名文件为准。

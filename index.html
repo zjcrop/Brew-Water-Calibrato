@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>萃离｜咖啡冲煮调水 配方2.4版</title>
+<title>萃离｜咖啡冲煮调水 配方2.5版</title>
 <link rel="icon" type="image/png" href="assets/app-icon.png">
 <style>
 :root{
@@ -245,6 +245,7 @@ input[type=range]{width:100%;accent-color:#ff9a3d}
 .qr-card img{width:88px;height:88px;border-radius:14px;object-fit:cover;background:#fff}
 .qr-card h5{margin:0 0 5px;font-size:14px}
 .qr-card p{margin:0!important;color:#c9d1db;font-size:12px;line-height:1.65}
+.recipe-section-anchor{scroll-margin-top:14px}
 @media(max-width:420px){.qr-card{grid-template-columns:76px 1fr}.qr-card img{width:76px;height:76px}}
 .section-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:16px;background:#141a22;border:1px solid #2c3644;color:#f3f5f7;font-weight:900}
 .collapsible-panel{display:none;margin-top:10px}.collapsible-panel.show{display:block}
@@ -332,10 +333,10 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
     <div>
       <h4>版本说明</h4>
       <div class="about-badges">
-        <span class="about-badge">版本 2.4</span>
-        <span class="about-badge">Capacitor Android 调试封装准备版</span>
+        <span class="about-badge">版本 2.5</span>
+        <span class="about-badge">Capacitor Android 图标与导航修订版</span>
       </div>
-      <p>本版已接入 Android 打包结构，首页视觉替换为新版启动主页设计图，并预留自定义 APP 图标与关于页联系二维码展示。</p>
+      <p>本版使用完整比例水滴图作为 APP 图标，保留新版启动主页设计图；关于页增加返回按钮，风险页在无中高风险时提供返回方案物质用量区域的快捷按钮。</p>
     </div>
     <div>
       <h4>版权说明</h4>
@@ -362,6 +363,7 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
         </div>
       </div>
     </div>
+    <button class="secondary-btn" style="margin-top:14px" onclick="closeAboutAndReturn()">返回</button>
   </div>
 </div>
     </div>
@@ -527,9 +529,11 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
       </div>
     </div>
 
-    <div class="section-title" style="margin-top:18px">📋 各种物质用量</div>
-    <div id="recipeList" class="recipe-list"></div>
-    <div style="margin-top:14px"><button class="secondary-btn" onclick="goPage('risk')">方案风险分析</button></div>
+    <div id="recipeSection" class="recipe-section-anchor">
+      <div class="section-title" style="margin-top:18px">📋 各种物质用量</div>
+      <div id="recipeList" class="recipe-list"></div>
+      <div style="margin-top:14px"><button class="secondary-btn" onclick="goPage('risk')">方案风险分析</button></div>
+    </div>
   </div>
 </section>
 
@@ -540,6 +544,7 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
     <div id="riskItems" class="risk-list"></div>
     <div id="optimAdvice" class="optim-note"></div>
     <div id="optimAction" class="hidden" style="margin-top:12px"><button class="primary-btn" onclick="optimizeRecipe()">一键优化并返回方案页</button></div>
+    <div id="riskReturnAction" class="hidden" style="margin-top:12px"><button class="secondary-btn" onclick="returnToPlanRecipe()">返回</button></div>
     <div id="optimChange" class="optim-change hidden"></div>
   </div>
 </section>
@@ -628,6 +633,7 @@ function v2SetBar(id, pct){ const el=$(id); if(el) el.style.width=clamp(pct,0,1)
 
 
 function toggleAbout(){const p=$('aboutPanel'),open=!p.classList.contains('show');p.classList.toggle('show',open);$('aboutArrow').textContent=open?'▴':'▾';}
+function closeAboutAndReturn(){const p=$('aboutPanel');p.classList.remove('show');$('aboutArrow').textContent='▾';window.scrollTo({top:0,behavior:'smooth'});}
 function toggleFlavorPanel(){const p=$('flavorPanel'),open=!p.classList.contains('show');p.classList.toggle('show',open);$('flavorArrow').textContent=open?'▴':'▾';}
 function toggleMatDetail(id,event){if(event)event.stopPropagation();if(openMatDetails.has(id))openMatDetails.delete(id);else openMatDetails.add(id);renderMats();}
 function toggleRecipeDetail(id,event){if(event)event.stopPropagation();openRecipeId=openRecipeId===id?null:id;renderRecipeCards(targetDisplay());}
@@ -646,6 +652,22 @@ function syncTargetPresets(){
   $('targetHelp').textContent=outputMode==='premix'?'预混合母粉提供50g、100g、200g与自定义目标总量。':'配方水提供1L、5L、10L与自定义目标体积。';
 }
 function goPage(page){if(page!=='plan')openRecipeId=null;currentPage=page;document.body.classList.toggle('home-screen',page==='home');['home','params','plan','risk'].forEach(p=>{$('page-'+p).classList.toggle('active',p===page);$('tab-'+p).classList.toggle('active',p===page);});window.scrollTo({top:0,behavior:'smooth'});if(page==='plan'||page==='risk')updateAll();}
+function returnToPlanRecipe(){
+  openRecipeId=null;
+  currentPage='plan';
+  document.body.classList.remove('home-screen');
+  ['home','params','plan','risk'].forEach(p=>{
+    $('page-'+p).classList.toggle('active',p==='plan');
+    $('tab-'+p).classList.toggle('active',p==='plan');
+  });
+  updateAll();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const el=$('recipeSection');
+    if(!el)return;
+    const top=Math.max(0,el.getBoundingClientRect().top+window.scrollY-12);
+    window.scrollTo({top,behavior:'smooth'});
+  }));
+}
 function renderBeans(){ $('beanSelect').innerHTML=Object.entries(PROFILE).map(([k,p])=>`<option value="${k}" ${selectedBean===k?'selected':''}>${p.name}</option>`).join(''); $('beanNote').innerHTML=`<strong>${PROFILE[selectedBean].name}</strong>：${PROFILE[selectedBean].note}`; }
 function selectBean(k){selectedBean=k;const p=PROFILE[k],s=p.s;['floral','sweet','acid','bitter'].forEach((id,i)=>$(id).value=s[i]);if($('silicaTarget')&&silicaRoute!=='silica')$('silicaTarget').value=p.si||2;renderBeans();updateScores();updateAll();}
 function budget(){const vals=['floral','sweet','acid','bitter'].map(id=>+$(id).value);const used=vals.reduce((a,b)=>a+b,0);return {used,left:Math.max(0,200-used)};}
@@ -951,7 +973,8 @@ function renderRiskPage(){
   $('riskItems').innerHTML=items.map(x=>`<div class="risk-item"><h4>${x.title}</h4><p>${x.txt}</p></div>`).join('');
   const hasMediumHigh=scores.some(v=>v>=5.2);
   $('optimAction').classList.toggle('hidden',!hasMediumHigh);
-  $('optimAdvice').innerHTML=hasMediumHigh?'检测到至少一项中风险或高风险，可执行一键优化并返回方案页。':'当前整体方案未出现中风险或高风险，不显示自动优化按钮。';
+  $('riskReturnAction').classList.toggle('hidden',hasMediumHigh);
+  $('optimAdvice').innerHTML=hasMediumHigh?'检测到至少一项中风险或高风险，可执行一键优化并返回方案页。':'当前整体方案未出现中风险或高风险，可点击“返回”回到方案页的各种物质用量区域。';
   $('optimChange').classList.toggle('hidden',!optimizationMessage);$('optimChange').innerHTML=optimizationMessage||'';
 }
 function optimizeRecipe(){const c=lastComputed,changes=[];const addDelta=(id,dv)=>{if(lastBase[id]){tweak[id]=clamp(tweak[id]+dv,-30,30);const name=MAT.find(m=>m.id===id).name;changes.push(`${name} ${dv>0?'+':''}${dv}%`);openRecipeId='recipe-'+id;}};if(c.ev.scale>5.2||c.ev.haze>5.2||c.ev.alkTaste>5.2){['khco3','nahco3','cacl2','caco3','k2co3','na2co3'].forEach(id=>addDelta(id,-8));['mgso4','mglac'].forEach(id=>addDelta(id,4));}if(c.ev.sulfate>5.2){addDelta('mgso4',-8);addDelta('mglac',6);}if(c.ev.salt>5.2){['nacl','kcl','mgcl2'].forEach(id=>addDelta(id,-10));['mglac','calac'].forEach(id=>addDelta(id,3));}if(c.tdsObj.effective<45){['mgso4','calac','khco3'].forEach(id=>addDelta(id,4));}if(c.tdsObj.effective>140){['khco3','nahco3','cacl2','mgso4'].forEach(id=>addDelta(id,-5));['calac','mglac'].forEach(id=>addDelta(id,3));}if(c.silica&&c.silica.enabled&&(c.ev.silicateScale>5.2||c.ev.silicaHaze>5.2)){if(c.silica.route==='silica'){const old=+$('silicaPowderPct').value||0,newVal=Math.max(0,old-.1);$('silicaPowderPct').value=newVal;changes.push(`SiO₂调粉比例 ${old.toFixed(1)}%→${newVal.toFixed(1)}%`);}else{const old=+$('silicaTarget').value||0,newVal=Math.max(0,old-1);$('silicaTarget').value=newVal;changes.push(`SiO₂当量 ${old.toFixed(1)}→${newVal.toFixed(1)}mg/L`);}}optimizationMessage=changes.length?('已自动微调：'+changes.join('；')):'当前配方整体处于较稳妥区间，未进行自动调整。';updateAll();goPage('plan');}
