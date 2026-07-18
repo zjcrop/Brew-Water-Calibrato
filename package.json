@@ -1,0 +1,22 @@
+{
+  "name": "brew-water-calibrato",
+  "version": "2.4.0",
+  "private": true,
+  "description": "萃离｜咖啡冲煮调水 Android wrapper with custom icon/home/about",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "prepare:web": "node scripts/prepare-web.mjs",
+    "android:add": "npm run prepare:web && npx cap add android",
+    "android:sync": "npm run prepare:web && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.4.2",
+    "@capacitor/core": "8.4.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.4.2"
+  }
+}

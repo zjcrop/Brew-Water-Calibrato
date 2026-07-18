@@ -1,0 +1,9 @@
+{
+	"appId": "com.zjcrop.brewwater",
+	"appName": "萃离",
+	"webDir": "www",
+	"android": {
+		"backgroundColor": "#000000",
+		"allowMixedContent": false
+	}
+}
