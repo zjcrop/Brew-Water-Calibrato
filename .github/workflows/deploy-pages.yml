@@ -1,0 +1,67 @@
+name: Deploy calibrated app to GitHub Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - index.html
+      - assets/**
+      - package.json
+      - scripts/patch_brew_water_v2_6_1.py
+      - .github/workflows/deploy-pages.yml
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Verify and apply v2.6.1 combined calibration patch
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python3 scripts/patch_brew_water_v2_6_1.py --root . --check
+          python3 scripts/patch_brew_water_v2_6_1.py --root . --in-place
+          grep -n "CUI_LI_V261_PATCH" index.html
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Prepare static site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf _site
+          mkdir -p _site
+          cp index.html _site/index.html
+          if [ -d assets ]; then cp -R assets _site/assets; fi
+          touch _site/.nojekyll
+          find _site -maxdepth 2 -type f -print
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

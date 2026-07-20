@@ -32,6 +32,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Verify v2.5 baseline
+        shell: bash
+        run: |
+          set -euxo pipefail
+          test -s index.html
+          test -d android
+          test -f android/gradlew
+          test -f scripts/patch_brew_water_v2_6_1.py
+          python3 scripts/patch_brew_water_v2_6_1.py --root . --check
+
+      - name: Apply v2.6.1 combined calibration patch
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python3 scripts/patch_brew_water_v2_6_1.py --root . --in-place
+          grep -n "CUI_LI_V261_PATCH" index.html
+          grep -n "配方2.6.1版" index.html
+
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
@@ -52,16 +70,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
-
-      - name: Verify required files
-        shell: bash
-        run: |
-          set -euxo pipefail
-          test -s index.html
-          test -d android
-          test -f android/gradlew
-          test -f android/gradle/wrapper/gradle-wrapper.properties
-          echo "Required files detected."
 
       - name: Pin npm and verify registry
         shell: bash
@@ -87,22 +95,15 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          command -v sdkmanager
-          sdkmanager --version
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager --sdk_root="$ANDROID_SDK_ROOT" \
-            "platform-tools" \
-            "platforms;android-36" \
-            "build-tools;36.0.0"
+          sdkmanager --sdk_root="$ANDROID_SDK_ROOT"             "platform-tools"             "platforms;android-36"             "build-tools;36.0.0"
 
       - name: Set Android app version
         shell: bash
         run: |
           set -euxo pipefail
-          sed -i -E 's/versionCode [0-9]+/versionCode 20500/' android/app/build.gradle
-          sed -i -E 's/versionName "[^"]+"/versionName "2.5.0"/' android/app/build.gradle
+          sed -i -E 's/versionCode [0-9]+/versionCode 20601/' android/app/build.gradle
+          sed -i -E 's/versionName "[^"]+"/versionName "2.6.1"/' android/app/build.gradle
           grep -nE 'versionCode|versionName' android/app/build.gradle
 
       - name: Build debug APK
@@ -120,16 +121,15 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk \
-            dist/Brew-Water-Calibrato-v2.5.0-debug.apk
-          sha256sum dist/Brew-Water-Calibrato-v2.5.0-debug.apk \
-            > dist/SHA256SUMS.txt
+          cp android/app/build/outputs/apk/debug/app-debug.apk             dist/Brew-Water-Calibrato-v2.6.1-debug.apk
+          sha256sum dist/Brew-Water-Calibrato-v2.6.1-debug.apk             > dist/SHA256SUMS.txt
+          cp FORMULA_AUDIT_v2.6.1.md dist/
           ls -lh dist
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
-          name: Brew-Water-Calibrato-v2.5.0-debug
+          name: Brew-Water-Calibrato-v2.6.1-debug
           path: dist/
           if-no-files-found: error
           retention-days: 30
