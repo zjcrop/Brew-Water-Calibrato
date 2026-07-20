@@ -1,0 +1,17 @@
+{
+  "repository": "zjcrop/Brew-Water-Calibrato",
+  "branch": "main",
+  "baseline_commit": "845a32d2b39b1c2e330d7247de5ac35af1f87582",
+  "baseline_index_git_blob_sha": "e3cde992deed76cd5b7d9d496cfa32424cecc4fd",
+  "baseline_android_workflow_git_blob_sha": "779825c6f387c8a7f62345054a85c833190c420c",
+  "baseline_package_json_git_blob_sha": "0988def0d1a3068046c9dcc2d24d1185b7457de8",
+  "target_version": "2.6.1",
+  "patch_type": "validated incremental build-time and optional in-place patch",
+  "changes": [
+    "TDS operational tolerance and reduced display precision",
+    "5 L powder weighing range",
+    "floral astringency and MgSO4 audit",
+    "equal-alkalinity KHCO3 to NaHCO3 rebalance",
+    "GitHub Pages and Android debug workflows"
+  ]
+}
