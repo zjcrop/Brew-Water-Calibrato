@@ -1,8 +1,8 @@
 {
   "name": "brew-water-calibrato",
-  "version": "2.5.0",
+  "version": "2.6.1",
   "private": true,
-  "description": "萃离｜咖啡冲煮调水 Android wrapper v2.5",
+  "description": "萃离｜咖啡冲煮调水 Android wrapper v2.6.1",
   "type": "module",
   "engines": {
     "node": ">=22"
