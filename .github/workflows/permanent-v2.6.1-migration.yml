@@ -1,0 +1,89 @@
+name: Permanent migrate Brew Water v2.6.1
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - .github/workflows/permanent-v2.6.1-migration.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: permanent-v2.6.1-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify migration inputs
+        shell: bash
+        run: |
+          set -euxo pipefail
+          test -s index.html
+          test -f scripts/patch_brew_water_v2_6_1.py
+          test -f package-lock.json
+          test -f android/app/build.gradle
+          python3 scripts/patch_brew_water_v2_6_1.py --root . --check
+
+      - name: Apply permanent v2.6.1 source migration
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python3 scripts/patch_brew_water_v2_6_1.py --root . --in-place
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          lock_path = Path("package-lock.json")
+          lock = json.loads(lock_path.read_text(encoding="utf-8"))
+          lock["version"] = "2.6.1"
+          if "" in lock.get("packages", {}):
+              lock["packages"][""]["version"] = "2.6.1"
+          lock_path.write_text(
+              json.dumps(lock, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8"
+          )
+
+          gradle_path = Path("android/app/build.gradle")
+          gradle = gradle_path.read_text(encoding="utf-8")
+          import re
+          gradle = re.sub(r"versionCode\s+\d+", "versionCode 20601", gradle)
+          gradle = re.sub(r'versionName\s+"[^"]+"', 'versionName "2.6.1"', gradle)
+          gradle_path.write_text(gradle, encoding="utf-8")
+          PY
+          grep -q "CUI_LI_V261_PATCH" index.html
+          grep -q "配方2.6.1版" index.html
+          grep -q '"version": "2.6.1"' package.json
+          grep -q '"version": "2.6.1"' package-lock.json
+          grep -q 'versionCode 20601' android/app/build.gradle
+          grep -q 'versionName "2.6.1"' android/app/build.gradle
+
+      - name: Remove one-time migration workflow
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -f .github/workflows/permanent-v2.6.1-migration.yml
+
+      - name: Commit permanent source
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add             index.html             package.json             package-lock.json             android/app/build.gradle             PATCH_APPLIED_v2.6.1.txt             .github/workflows/permanent-v2.6.1-migration.yml
+          if git diff --cached --quiet; then
+            echo "No migration changes to commit."
+            exit 0
+          fi
+          git commit -m "Permanently deploy Brew Water Calibrator v2.6.1"
+          git push origin HEAD:main

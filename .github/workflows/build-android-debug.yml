@@ -3,15 +3,14 @@ name: Build Android Debug APK
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: ["main"]
     paths:
       - index.html
       - assets/**
       - package.json
       - package-lock.json
       - capacitor.config.json
-      - scripts/**
+      - scripts/prepare-web.mjs
       - android/**
       - .github/workflows/build-android-debug.yml
 
@@ -32,36 +31,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Verify v2.5 baseline
+      - name: Verify permanent v2.6.1 source
         shell: bash
         run: |
           set -euxo pipefail
           test -s index.html
           test -d android
           test -f android/gradlew
-          test -f scripts/patch_brew_water_v2_6_1.py
-          python3 scripts/patch_brew_water_v2_6_1.py --root . --check
-
-      - name: Apply v2.6.1 combined calibration patch
-        shell: bash
-        run: |
-          set -euxo pipefail
-          python3 scripts/patch_brew_water_v2_6_1.py --root . --in-place
-          grep -n "CUI_LI_V261_PATCH" index.html
-          grep -n "配方2.6.1版" index.html
+          grep -q "CUI_LI_V261_PATCH" index.html
+          grep -q '"version": "2.6.1"' package.json
+          grep -q 'versionCode 20601' android/app/build.gradle
+          grep -q 'versionName "2.6.1"' android/app/build.gradle
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22.16.0'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "22.16.0"
+          registry-url: "https://registry.npmjs.org"
           cache: npm
 
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -71,25 +64,22 @@ jobs:
         with:
           cache-provider: basic
 
-      - name: Pin npm and verify registry
+      - name: Pin npm and install dependencies
         shell: bash
+        env:
+          npm_config_registry: https://registry.npmjs.org/
         run: |
           set -euxo pipefail
           npm install --global npm@10.9.2
-          npm --version
           npm config set registry https://registry.npmjs.org/
-          npm config get registry
+          npm ci --no-audit --no-fund --prefer-online
 
-      - name: Install npm dependencies
-        env:
-          npm_config_registry: https://registry.npmjs.org/
-        run: npm ci --no-audit --no-fund --prefer-online
-
-      - name: Prepare local web assets
-        run: npm run prepare:web
-
-      - name: Sync Capacitor web assets
-        run: npx cap sync android
+      - name: Prepare and sync web assets
+        shell: bash
+        run: |
+          set -euxo pipefail
+          npm run prepare:web
+          npx cap sync android
 
       - name: Install Android SDK 36
         shell: bash
@@ -97,14 +87,6 @@ jobs:
           set -euxo pipefail
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
           sdkmanager --sdk_root="$ANDROID_SDK_ROOT"             "platform-tools"             "platforms;android-36"             "build-tools;36.0.0"
-
-      - name: Set Android app version
-        shell: bash
-        run: |
-          set -euxo pipefail
-          sed -i -E 's/versionCode [0-9]+/versionCode 20601/' android/app/build.gradle
-          sed -i -E 's/versionName "[^"]+"/versionName "2.6.1"/' android/app/build.gradle
-          grep -nE 'versionCode|versionName' android/app/build.gradle
 
       - name: Build debug APK
         working-directory: android
