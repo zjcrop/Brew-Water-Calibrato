@@ -7,7 +7,6 @@ on:
     paths:
       - index.html
       - assets/**
-      - .github/workflows/deploy-pages.yml
 
 permissions:
   contents: read
@@ -22,38 +21,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Verify permanent v2.6.1 source
-        shell: bash
+      - uses: actions/checkout@v6
+      - name: Verify permanent v2.7 source
         run: |
           set -euxo pipefail
           test -s index.html
-          grep -q "CUI_LI_V261_PATCH" index.html
-          grep -q "配方2.6.1版" index.html
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-
+          grep -q "CUI_LI_V27_TEA_PATCH" index.html
+          grep -q "咖啡与茶冲泡调水 配方2.7版" index.html
+      - uses: actions/configure-pages@v5
       - name: Prepare static site
-        shell: bash
         run: |
           set -euxo pipefail
           rm -rf _site
           mkdir -p _site
           cp index.html _site/index.html
-          if [ -d assets ]; then
-            cp -R assets _site/assets
-          fi
+          if [ -d assets ]; then cp -R assets _site/assets; fi
           touch _site/.nojekyll
-          find _site -maxdepth 2 -type f -print
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
-
   deploy:
     environment:
       name: github-pages
@@ -61,6 +47,5 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4

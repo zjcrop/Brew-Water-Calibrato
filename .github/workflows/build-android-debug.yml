@@ -12,7 +12,6 @@ on:
       - capacitor.config.json
       - scripts/prepare-web.mjs
       - android/**
-      - .github/workflows/build-android-debug.yml
 
 permissions:
   contents: read
@@ -25,93 +24,74 @@ jobs:
   build-apk:
     name: Build debug APK
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-
+    timeout-minutes: 45
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Verify permanent v2.6.1 source
-        shell: bash
+      - uses: actions/checkout@v6
+      - name: Verify permanent v2.7 source
         run: |
           set -euxo pipefail
           test -s index.html
-          test -d android
           test -f android/gradlew
-          grep -q "CUI_LI_V261_PATCH" index.html
-          grep -q '"version": "2.6.1"' package.json
-          grep -q 'versionCode 20601' android/app/build.gradle
-          grep -q 'versionName "2.6.1"' android/app/build.gradle
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+          grep -q "CUI_LI_V27_TEA_PATCH" index.html
+          grep -q '"version": "2.7.0"' package.json
+          grep -q 'versionCode 20700' android/app/build.gradle
+          grep -q 'versionName "2.7.0"' android/app/build.gradle
+      - uses: actions/setup-node@v6
         with:
           node-version: "22.16.0"
           registry-url: "https://registry.npmjs.org"
           cache: npm
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
-
-      - name: Pin npm and install dependencies
-        shell: bash
+      - name: Install npm dependencies with retry
         env:
           npm_config_registry: https://registry.npmjs.org/
+          npm_config_audit: "false"
+          npm_config_fund: "false"
         run: |
           set -euxo pipefail
-          npm install --global npm@10.9.2
           npm config set registry https://registry.npmjs.org/
-          npm ci --no-audit --no-fund --prefer-online
-
+          for attempt in 1 2 3; do
+            npm ci --no-audit --no-fund --prefer-online && break
+            if [ "$attempt" = "3" ]; then exit 1; fi
+            sleep $((attempt * 15))
+          done
       - name: Prepare and sync web assets
-        shell: bash
         run: |
           set -euxo pipefail
           npm run prepare:web
-          npx cap sync android
-
+          npx --no-install cap sync android
       - name: Install Android SDK 36
-        shell: bash
         run: |
           set -euxo pipefail
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager --sdk_root="$ANDROID_SDK_ROOT"             "platform-tools"             "platforms;android-36"             "build-tools;36.0.0"
-
+          sdkmanager --sdk_root="$ANDROID_SDK_ROOT" \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
       - name: Build debug APK
         working-directory: android
-        shell: bash
         run: |
           set -euxo pipefail
           sed -i 's/\r$//' gradlew
           chmod +x gradlew
-          bash ./gradlew --version
-          bash ./gradlew assembleDebug --no-daemon --stacktrace
-
-      - name: Prepare APK artifact
-        shell: bash
+          ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Prepare artifact
         run: |
           set -euxo pipefail
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk             dist/Brew-Water-Calibrato-v2.6.1-debug.apk
-          sha256sum dist/Brew-Water-Calibrato-v2.6.1-debug.apk             > dist/SHA256SUMS.txt
-          cp FORMULA_AUDIT_v2.6.1.md dist/
-          ls -lh dist
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v7
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/Brew-Water-Calibrato-v2.7.0-debug.apk
+          sha256sum dist/Brew-Water-Calibrato-v2.7.0-debug.apk > dist/SHA256SUMS.txt
+          cp TEA_WATER_AUDIT_v2.7.md dist/
+      - uses: actions/upload-artifact@v7
         with:
-          name: Brew-Water-Calibrato-v2.6.1-debug
+          name: Brew-Water-Calibrato-v2.7.0-debug
           path: dist/
           if-no-files-found: error
           retention-days: 30
