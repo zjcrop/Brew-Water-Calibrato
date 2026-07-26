@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>萃离｜咖啡冲煮调水 配方2.6.1版</title>
+<title>萃离｜咖啡与茶冲泡调水 配方2.7版</title>
 <link rel="icon" type="image/png" href="assets/app-icon.png">
 <style>
 :root{
@@ -333,6 +333,25 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
   #page-home,#page-home .hero-card{min-height:100vh}
 }
 
+
+/* CUI_LI_V27_TEA_PATCH UI */
+.beverage-switch{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.beverage-btn{border:1px solid #2f3947;background:#10151d;color:#fff;border-radius:18px;padding:13px;text-align:left;cursor:pointer}
+.beverage-btn strong{display:block;font-size:15px}.beverage-btn small{display:block;color:#9da6b3;font-size:12px;line-height:1.45;margin-top:4px}
+.beverage-btn.active{border-color:#7dd3fc;background:#101b25;box-shadow:inset 0 0 0 1px rgba(125,211,252,.16)}
+.tea-water-panel,.tea-profile-panel,.tea-plan-card{margin-top:12px;padding:13px;border-radius:18px;background:#0b1418;border:1px solid #24404b}
+.tea-water-panel h4,.tea-profile-panel h4,.tea-plan-card h4{margin:0 0 8px;font-size:15px;color:#dff7ff}
+.tea-water-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tea-water-field{min-width:0}.tea-water-field label{display:block;color:#aeb9c4;font-size:11px;line-height:1.35;margin-bottom:5px}
+.tea-water-field input{width:100%;background:#0d1118;border:1px solid #2c3c44;border-radius:12px;padding:9px 8px;color:#fff;min-width:0}
+.tea-spec-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}
+.tea-spec{background:#101a1f;border:1px solid #263d46;border-radius:13px;padding:9px;min-width:0}
+.tea-spec small{display:block;color:#91a6af;font-size:11px}.tea-spec b{display:block;margin-top:3px;font-size:15px;word-break:break-word}
+.tea-guidance-text{color:#cbd6dc;font-size:12px;line-height:1.7;margin-top:9px}
+.tea-source-warning{margin-top:9px;padding:9px 10px;border-radius:12px;background:#17130d;border:1px solid #4d3a17;color:#ffe0a6;font-size:12px;line-height:1.65}
+.tea-mode-note{margin-top:8px;color:#9fb0b8;font-size:11px;line-height:1.6}
+@media(max-width:420px){.tea-water-grid{grid-template-columns:1fr}.tea-spec-grid{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 <body class="home-screen">
@@ -352,19 +371,19 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
   <div class="about-meta">
     <div>
       <h4>软件说明</h4>
-      <p>萃离用于咖啡冲煮水复矿、预设方案载入、风味微调、物质用量换算、TDS 预测与风险筛查。所有计算均为配方研究模型，原料化学式、水合状态、纯度与批次数据必须与实际采购物一致。</p>
+      <p>萃离用于咖啡与茶冲泡水复矿、分类预设载入、表达微调、物质用量换算、TDS预测与风险筛查；茶模式增加源水pH、游离氯、铁离子、茶膜与冷后浑评估。所有计算均为配方研究模型，原料化学式、水合状态、纯度与批次数据必须与实际采购物一致。</p>
     </div>
     <div>
       <h4>版本说明</h4>
       <div class="about-badges">
-        <span class="about-badge">版本 2.6.1</span>
-        <span class="about-badge">TDS误差、称量范围、涩感及K/Na再平衡版</span>
+        <span class="about-badge">版本 2.7</span>
+        <span class="about-badge">咖啡与茶双模式、茶类源水评估版</span>
       </div>
       <p>本版使用完整比例水滴图作为 APP 图标，保留新版启动主页设计图；关于页增加返回按钮，风险页在无中高风险时提供返回方案物质用量区域的快捷按钮。</p>
     </div>
     <div>
       <h4>版权说明</h4>
-      <p>本工具核心内容为个人编写，仅供咖啡调水研究与个人实验参考。转载、引用或二次传播应提前告知并注明来源。因原料等级、称量误差、包装吸潮或操作顺序不当产生的风险，应由实际使用者重新验证。</p>
+      <p>本工具核心内容为个人编写，仅供咖啡与茶调水研究及个人实验参考。转载、引用或二次传播应提前告知并注明来源。因原料等级、称量误差、包装吸潮或操作顺序不当产生的风险，应由实际使用者重新验证。</p>
     </div>
     <div>
       <h4>关于与联系</h4>
@@ -417,9 +436,26 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
       <div class="helper" id="targetHelp" style="margin-top:8px">预混合母粉默认目标总量为50g。</div>
     </div>
 
-    <div class="input-label">预设方案</div>
+    <div class="input-label">饮品类型</div>
+    <div class="beverage-switch">
+      <button id="beverageCoffee" class="beverage-btn active" onclick="setBeverageMode('coffee')"><strong>咖啡</strong><small>保留现有豆种、处理法与烘焙取向配方</small></button>
+      <button id="beverageTea" class="beverage-btn" onclick="setBeverageMode('tea')"><strong>茶</strong><small>按发酵与焙火工艺载入针对性水质</small></button>
+    </div>
+
+    <div class="input-label" id="profileLabel">咖啡豆／处理风格预设</div>
     <select id="beanSelect" class="select-like" onchange="selectBean(this.value)"></select>
     <div id="beanNote" class="note-box"></div>
+    <div id="teaProfilePanel" class="tea-profile-panel hidden"></div>
+    <div id="teaWaterPanel" class="tea-water-panel hidden">
+      <h4>茶类源水实测输入</h4>
+      <div class="tea-water-grid">
+        <div class="tea-water-field"><label for="teaMeasuredPh">源水pH（实测）</label><input id="teaMeasuredPh" type="number" min="5.5" max="9" step="0.05" value="7.00" oninput="teaSourceChanged()"></div>
+        <div class="tea-water-field"><label for="teaFreeChlorine">游离氯 mg/L</label><input id="teaFreeChlorine" type="number" min="0" max="5" step="0.01" value="0" oninput="teaSourceChanged()"></div>
+        <div class="tea-water-field"><label for="teaIron">铁离子 mg/L</label><input id="teaIron" type="number" min="0" max="5" step="0.01" value="0" oninput="teaSourceChanged()"></div>
+      </div>
+      <div class="tea-source-warning">pH不能由TDS或HCO₃⁻可靠反推。游离氯和铁来自源水，不属于母粉生成的离子；出现风险时应处理或更换水源。</div>
+      <button class="mini-btn" style="margin-top:9px" onclick="openModal('teaWater')">茶类水质说明</button>
+    </div>
 
     <div class="input-label">配方体系</div>
     <div class="system-row">
@@ -427,8 +463,8 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
       <button id="systemHalf" class="system-btn active" onclick="setSaltSystem('half')"><strong>半有机盐配方</strong><small>无机盐与乳酸盐共同承担Ca/Mg。</small></button>
     </div>
 
-    <div class="input-label">是否添加硅</div>
-    <div class="silica-enable-row">
+    <div id="silicaModeLabel" class="input-label">是否添加硅</div>
+    <div id="silicaEnableRow" class="silica-enable-row">
       <button id="silicaNo" class="system-btn active" onclick="setSilicaEnabled(false)"><strong>不添加</strong><small>不改变现有离子与粉体模型。</small></button>
       <button id="silicaYes" class="system-btn" onclick="setSilicaEnabled(true)"><strong>添加</strong><small>展开硅源、剂量和使用提示。</small></button>
     </div>
@@ -471,14 +507,14 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
       <div id="silicaRouteNote" class="silica-route-note"></div>
     </div>
 
-    <div class="input-label">风味控制</div>
+    <div id="flavorControlLabel" class="input-label">风味控制</div>
     <button id="flavorToggle" class="section-toggle" onclick="toggleFlavorPanel()"><span>风味微调</span><span id="flavorArrow">▾</span></button>
     <div id="flavorPanel" class="collapsible-panel">
       <div class="slider-card">
-        <div class="srow"><div class="shead"><div><b>花香 / 果香</b><small>内敛干净 ←→ 高扬突出</small></div><span id="sc-floral" class="score">70</span></div><input id="floral" type="range" min="0" max="100" value="70" oninput="budgetInput('floral')"></div>
-        <div class="srow"><div class="shead"><div><b>甜感 / 圆润</b><small>清爽轻盈 ←→ 甜厚圆润</small></div><span id="sc-sweet" class="score">55</span></div><input id="sweet" type="range" min="0" max="100" value="55" oninput="budgetInput('sweet')"></div>
-        <div class="srow"><div class="shead"><div><b>酸质处理</b><small>明亮清新 / 保酸 ←→ 柔和抑酸</small></div><span id="sc-acid" class="score">15</span></div><input id="acid" type="range" min="0" max="100" value="15" oninput="budgetInput('acid')"></div>
-        <div class="srow"><div class="shead"><div><b>抑苦 / 抑涩</b><small>保留锐度 ←→ 抑苦柔化</small></div><span id="sc-bitter" class="score">20</span></div><input id="bitter" type="range" min="0" max="100" value="20" oninput="budgetInput('bitter')"></div>
+        <div class="srow"><div class="shead"><div><b id="label-floral">花香 / 果香</b><small id="help-floral">内敛干净 ←→ 高扬突出</small></div><span id="sc-floral" class="score">70</span></div><input id="floral" type="range" min="0" max="100" value="70" oninput="budgetInput('floral')"></div>
+        <div class="srow"><div class="shead"><div><b id="label-sweet">甜感 / 圆润</b><small id="help-sweet">清爽轻盈 ←→ 甜厚圆润</small></div><span id="sc-sweet" class="score">55</span></div><input id="sweet" type="range" min="0" max="100" value="55" oninput="budgetInput('sweet')"></div>
+        <div class="srow"><div class="shead"><div><b id="label-acid">酸质处理</b><small id="help-acid">明亮清新 / 保酸 ←→ 柔和抑酸</small></div><span id="sc-acid" class="score">15</span></div><input id="acid" type="range" min="0" max="100" value="15" oninput="budgetInput('acid')"></div>
+        <div class="srow"><div class="shead"><div><b id="label-bitter">抑苦 / 抑涩</b><small id="help-bitter">保留锐度 ←→ 抑苦柔化</small></div><span id="sc-bitter" class="score">20</span></div><input id="bitter" type="range" min="0" max="100" value="20" oninput="budgetInput('bitter')"></div>
         <div class="budget-box"><div><div class="k">预算上限</div><div class="v">200</div></div><div><div class="k">已使用</div><div id="budgetUsed" class="v">160</div></div><div><div class="k">剩余</div><div id="budgetLeft" class="v">40</div></div></div>
       </div>
     </div>
@@ -507,6 +543,8 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
       <div class="v2-stat"><small>每1L添加</small><div id="dose1L" class="v2-big">0.000g</div><div class="v2-sub">等比例参考值</div></div>
       <div class="v2-stat"><small>电导等效TDS</small><div id="tdsEffective" class="v2-big">0 ± 0ppm</div><div id="tdsOperationalRange" class="operation-range">操作控制带 0–0ppm</div><div id="tdsExactNote" class="precision-note">备注：模型精确值 0.0ppm</div><span id="tdsBadge" class="tds-state tds-ok">合理</span></div>
     </div>
+
+    <div id="teaPlanGuidance" class="tea-plan-card hidden"></div>
 
     <div class="fold-card" id="foldTds">
       <button class="fold-head" onclick="toggleFold('foldTds')"><span>📊 预期TDS与用量说明</span><span class="fold-arrow">▾</span></button>
@@ -1323,6 +1361,269 @@ openModal=function(type){
       </ul>`;
   }
 };
+
+/* CUI_LI_V27_TEA_PATCH
+ * v2.7: coffee + tea water calibration expansion
+ * Tea source: user-supplied water-quality research summary.
+ */
+const CUILI_TEA_PROFILES={
+  tea_green:{
+    category:'tea',code:'T-GR',name:'绿茶｜鲜爽儿茶素型',s:[70,30,65,35],tds:[30,80],si:0,
+    t:{ca:4.5,mg:2.0,hco3:12,na:.75},g:{ca:[2.5,6.5],mg:[1.0,3.5],hco3:[8,18]},
+    bias:{cacl2:1.20,calac:.80,mgso4:.30,mglac:1.70},
+    water:{ph:[6.5,7.0],hard:[15,35],type:'软水／高品质纯净水',chem:'降低儿茶素自动氧化、差向异构化及钙镁桥联，保留黄绿明亮、氨基酸鲜爽与清香。',risk:'硬度、碱度或源水pH偏高时，优先警惕汤色暗化、茶膜、苦涩和香气钝化。'},
+    note:'适用于龙井、碧螺春、毛峰、煎茶等高儿茶素与高氨基酸绿茶。资料建议TDS 30–80ppm、pH 6.5–7.0；本工具采用更低硬度的中心配方。',
+    audit:'低硬度、低Mg、低碱度；不以高矿化提高鲜爽，优先保护儿茶素和氨基酸。'
+  },
+  tea_white:{
+    category:'tea',code:'T-WH',name:'白茶｜毫香蜜韵型',s:[62,43,55,35],tds:[50,100],si:0,
+    t:{ca:6.0,mg:2.5,hco3:20,na:.72},g:{ca:[4.0,8.0],mg:[1.5,4.0],hco3:[14,26]},
+    bias:{cacl2:1.10,calac:.90,mgso4:.35,mglac:1.65},
+    water:{ph:[6.5,7.0],hard:[20,45],type:'软水／低矿化山泉型',chem:'在保持儿茶素稳定的同时提供轻度矿物支撑，使毫香、蜜韵和甜润不至于单薄。',risk:'Ca/Mg或pH过高会增加茶多酚络合、汤色加深及涩感；储存后还需观察冷后浑。'},
+    note:'适用于白毫银针、白牡丹、寿眉等。资料建议TDS 50–100ppm、pH 6.5–7.0。',
+    audit:'比绿茶略高的Ca与HCO₃⁻支撑甜润，但Mg和硬度仍保持低位。'
+  },
+  tea_light_oolong:{
+    category:'tea',code:'T-OL',name:'清香型乌龙｜兰花高香型',s:[80,38,48,30],tds:[30,80],si:0,
+    t:{ca:5.0,mg:2.5,hco3:16,na:.72},g:{ca:[3.0,7.0],mg:[1.5,4.0],hco3:[10,22]},
+    bias:{cacl2:1.15,calac:.85,mgso4:.30,mglac:1.70},
+    water:{ph:[6.5,7.0],hard:[18,40],type:'优质软水／低矿化山泉型',chem:'减少离子干扰，给挥发性花香和果胶清甜留出溶剂容量，避免兰花香被硬水和高碱度压制。',risk:'高TDS、游离氯及高pH会直接压香；Ca/Mg偏高容易出现茶膜和尾段粗涩。'},
+    note:'适用于清香铁观音、台湾高山茶、轻焙冻顶等。资料建议TDS 30–80ppm、pH 6.5–7.0。',
+    audit:'以低硬度和低硫酸根保护高香，不复制咖啡花香配方的中高Mg逻辑。'
+  },
+  tea_roasted_oolong:{
+    category:'tea',code:'T-RO',name:'浓香／重焙乌龙｜焙火醇厚型',s:[42,65,35,45],tds:[70,120],si:0,
+    t:{ca:9.5,mg:4.0,hco3:34,na:.68},g:{ca:[7.0,12.0],mg:[2.5,6.0],hco3:[25,42]},
+    bias:{cacl2:1.05,calac:.95,mgso4:.45,mglac:1.55},
+    water:{ph:[6.8,7.2],hard:[35,65],type:'中软水／天然山泉型',chem:'适量Ca/Mg和缓冲提供汤体骨架、修饰火味并增强回甘，但硬度仍低于易形成茶膜的区域。',risk:'过高碱度会使焙火香闷钝；Ca与HCO₃⁻同时过高会提高茶垢和界面膜风险。'},
+    note:'适用于岩茶、浓香铁观音、重焙冻顶等。资料建议TDS 70–120ppm、pH 6.8–7.2。',
+    audit:'中软水结构，Ca主导骨架、Mg受限，缓冲提高但不跨入高碱度。'
+  },
+  tea_black:{
+    category:'tea',code:'T-BK',name:'红茶｜茶黄素圆润型',s:[38,65,30,55],tds:[80,150],si:0,
+    t:{ca:11.0,mg:5.0,hco3:42,na:.70},g:{ca:[8.0,14.0],mg:[3.0,7.0],hco3:[32,52]},
+    bias:{cacl2:1.05,calac:.95,mgso4:.50,mglac:1.50},
+    water:{ph:[6.8,7.5],hard:[40,75],type:'中软水／天然矿泉型',chem:'适度矿物质和缓冲支撑茶黄素、茶红素带来的红亮度与圆润感，并修饰天然微酸。',risk:'pH接近或超过7.5时，多酚氧化和汤色暗化风险上升；高硬度会加速冷后浑。'},
+    note:'适用于祁红、滇红、正山小种、阿萨姆等全发酵红茶。资料建议TDS 80–150ppm、pH 6.8–7.5。',
+    audit:'中等Ca、受控Mg和中等缓冲，避免以高硬度换取虚假厚度。'
+  },
+  tea_dark:{
+    category:'tea',code:'T-DK',name:'黑茶／熟普洱｜陈香厚汤型',s:[25,80,20,65],tds:[100,200],si:0,
+    t:{ca:14.0,mg:6.0,hco3:58,na:.72},g:{ca:[10.0,18.0],mg:[3.5,8.0],hco3:[45,70]},
+    bias:{cacl2:1.05,calac:.95,mgso4:.55,mglac:1.45},
+    water:{ph:[7.0,7.5],hard:[50,95],type:'中等矿化山泉型',chem:'较高Ca与缓冲支撑茶褐素、多糖及后发酵茶的厚度、黏稠度与陈香，但仍限制Mg和硫酸根。',risk:'不能把“可耐受更高矿化”理解为越硬越好；高Ca、高碱度和长时间放置会显著增加茶膜、沉淀和钝感。'},
+    note:'适用于熟普洱、六堡茶、安化黑茶等后发酵茶。资料建议TDS 100–200ppm、pH 7.0–7.5。',
+    audit:'六类茶中矿化度最高，但Ca、Mg和碱度仍设置工程上限，避免茶膜与陈香钝化。'
+  }
+};
+Object.assign(PROFILE,CUILI_TEA_PROFILES);
+
+let beverageMode='coffee';
+let cuiliLastCoffeeProfile='geisha';
+let cuiliLastTeaProfile='tea_green';
+let cuiliCoffeeSaltSystem='half';
+let cuiliCoffeeSilica=false;
+
+function cuiliIsTea(id=selectedBean){return !!(PROFILE[id]&&PROFILE[id].category==='tea');}
+function cuiliTeaSource(){
+  return {
+    ph:clamp(parseFloat(($('teaMeasuredPh')||{}).value)||7.0,5.5,9.0),
+    chlorine:clamp(parseFloat(($('teaFreeChlorine')||{}).value)||0,0,5),
+    iron:clamp(parseFloat(($('teaIron')||{}).value)||0,0,5)
+  };
+}
+function teaSourceChanged(){updateAll();}
+
+function cuiliUpdateModeLabels(){
+  const tea=beverageMode==='tea';
+  const p=PROFILE[selectedBean];
+  if($('beverageCoffee'))$('beverageCoffee').classList.toggle('active',!tea);
+  if($('beverageTea'))$('beverageTea').classList.toggle('active',tea);
+  if($('profileLabel'))$('profileLabel').textContent=tea?'茶类针对性预设':'咖啡豆／处理风格预设';
+  if($('teaWaterPanel'))$('teaWaterPanel').classList.toggle('hidden',!tea);
+  if($('teaProfilePanel'))$('teaProfilePanel').classList.toggle('hidden',!tea);
+  if($('silicaModeLabel'))$('silicaModeLabel').classList.toggle('hidden',tea);
+  if($('silicaEnableRow'))$('silicaEnableRow').classList.toggle('hidden',tea);
+  if($('silicaPanel')&&tea)$('silicaPanel').classList.add('hidden');
+  if($('flavorControlLabel'))$('flavorControlLabel').textContent=tea?'茶汤表达控制':'风味控制';
+  const labels=tea?[
+    ['香气保留','内敛稳定 ←→ 高香保护'],
+    ['汤感／醇厚','轻盈清透 ←→ 圆润厚实'],
+    ['鲜爽／活性保留','成熟柔和 ←→ 鲜爽清亮'],
+    ['控涩／稳定','保留锐度 ←→ 降低粗涩']
+  ]:[
+    ['花香 / 果香','内敛干净 ←→ 高扬突出'],
+    ['甜感 / 圆润','清爽轻盈 ←→ 甜厚圆润'],
+    ['酸质处理','明亮清新 / 保酸 ←→ 柔和抑酸'],
+    ['抑苦 / 抑涩','保留锐度 ←→ 抑苦柔化']
+  ];
+  ['floral','sweet','acid','bitter'].forEach((id,i)=>{
+    const b=$('label-'+id),s=$('help-'+id);if(b)b.textContent=labels[i][0];if(s)s.textContent=labels[i][1];
+  });
+  if(tea&&p&&p.water){
+    const w=p.water;
+    v2SetHTML('teaProfilePanel',`<h4>${p.name}</h4><div class="tea-spec-grid"><div class="tea-spec"><small>资料TDS范围</small><b>${p.tds[0]}–${p.tds[1]} ppm</b></div><div class="tea-spec"><small>资料pH范围</small><b>${w.ph[0]}–${w.ph[1]}</b></div><div class="tea-spec"><small>工程硬度范围</small><b>${w.hard[0]}–${w.hard[1]} mg/L</b></div></div><div class="tea-guidance-text"><strong>适配水型：</strong>${w.type}<br><strong>化学与感官逻辑：</strong>${w.chem}<br><strong>主要风险：</strong>${w.risk}</div><div class="tea-mode-note">硬度以CaCO₃计；pH必须实测，不能由HCO₃⁻或TDS直接反推。资料中的茶类TDS与pH范围作为目标边界，Ca/Mg/HCO₃⁻是本工具为落地配方设置的工程中心值。</div>`);
+  }
+  if($('systemInorganic'))$('systemInorganic').querySelector('small').textContent=tea?'茶模式默认路径：用低剂量CaCl₂、MgSO₄及碳酸氢盐复矿。':'Ca/Mg由氯化物、硫酸盐等无机盐承担。';
+  if($('systemHalf'))$('systemHalf').querySelector('small').textContent=tea?'实验路径：乳酸盐可能改变茶汤络合与感官，不属于资料直接结论。':'无机盐与乳酸盐共同承担Ca/Mg。';
+}
+
+function setBeverageMode(mode){
+  mode=mode==='tea'?'tea':'coffee';
+  if(mode===beverageMode){cuiliUpdateModeLabels();return;}
+  if(mode==='tea'){
+    if(!cuiliIsTea())cuiliLastCoffeeProfile=selectedBean;
+    cuiliCoffeeSaltSystem=saltSystem;cuiliCoffeeSilica=silicaEnabled;
+    beverageMode='tea';selectedBean=cuiliLastTeaProfile;
+    setSilicaEnabled(false);setSaltSystem('inorganic');selectBean(selectedBean);
+  }else{
+    if(cuiliIsTea())cuiliLastTeaProfile=selectedBean;
+    beverageMode='coffee';selectedBean=cuiliLastCoffeeProfile;
+    setSaltSystem(cuiliCoffeeSaltSystem||'half');setSilicaEnabled(!!cuiliCoffeeSilica);selectBean(selectedBean);
+  }
+  cuiliUpdateModeLabels();
+}
+
+const cuiliRenderBeansV261=renderBeans;
+renderBeans=function(){
+  const entries=Object.entries(PROFILE).filter(([id,p])=>beverageMode==='tea'?p.category==='tea':p.category!=='tea');
+  if(!entries.some(([id])=>id===selectedBean))selectedBean=entries[0][0];
+  $('beanSelect').innerHTML=entries.map(([k,p])=>`<option value="${k}" ${selectedBean===k?'selected':''}>${p.name}</option>`).join('');
+  const p=PROFILE[selectedBean];
+  $('beanNote').innerHTML=`<strong>${p.name}</strong>：${p.note}`;
+  cuiliUpdateModeLabels();
+};
+
+const cuiliSelectBeanV261=selectBean;
+selectBean=function(k){
+  if(PROFILE[k]&&PROFILE[k].category==='tea'){beverageMode='tea';cuiliLastTeaProfile=k;}else{beverageMode='coffee';cuiliLastCoffeeProfile=k;}
+  cuiliSelectBeanV261(k);
+  cuiliUpdateModeLabels();
+};
+
+const cuiliTargetIonsV261=targetIons;
+targetIons=function(){
+  const p=PROFILE[selectedBean];
+  if(!p||p.category!=='tea')return cuiliTargetIonsV261();
+  const vals=['floral','sweet','acid','bitter'].map((id,i)=>(+$(id).value-p.s[i])/100);
+  const dAroma=vals[0],dBody=vals[1],dFresh=vals[2],dSoft=vals[3];
+  const g=p.g;
+  const ca=clamp(p.t.ca+2.2*dBody-1.4*dAroma-1.0*dFresh-.4*dSoft,g.ca[0],g.ca[1]);
+  const mg=clamp(p.t.mg+.9*dAroma-.5*dFresh-1.6*dSoft-.5*dBody,g.mg[0],g.mg[1]);
+  const hco3=clamp(p.t.hco3+6*dBody+2.5*dSoft-5*dFresh-3.5*dAroma,g.hco3[0],g.hco3[1]);
+  const naShare=clamp(p.t.na+.04*dSoft+.02*dBody-.02*dAroma,.60,.82);
+  return {ca,mg,hco3,naShare};
+};
+
+const cuiliTdsAssessmentV261=tdsAssessment;
+tdsAssessment=function(tds,tolerance){
+  if(!cuiliIsTea())return cuiliTdsAssessmentV261(tds,tolerance);
+  const p=PROFILE[selectedBean],low=p.tds[0],high=p.tds[1];
+  const tol=Number.isFinite(tolerance)?tolerance:clamp(Math.round(tds*.055)+1,5,9);
+  const lower=tds-tol,upper=tds+tol;
+  if(upper<low)return {cls:'tds-low',label:'低于茶类目标',text:`当前操作控制带 ${Math.max(0,Math.round(lower))}–${Math.round(upper)} ppm 低于 ${p.name} 的资料建议区间 ${low}–${high} ppm。香气可能清楚，但汤体、缓冲和回甘支撑可能不足。`};
+  if(lower<=high&&upper>=low)return {cls:'tds-ok',label:'茶类目标内',text:`当前操作控制带 ${Math.max(0,Math.round(lower))}–${Math.round(upper)} ppm 与 ${p.name} 的资料建议区间 ${low}–${high} ppm 重叠。`};
+  if(lower<=high+30)return {cls:'tds-mid',label:'偏高，需观察',text:`当前操作控制带 ${Math.round(lower)}–${Math.round(upper)} ppm 高于 ${p.name} 的建议区间，可能增加汤体，也可能压香、加速茶膜或冷后浑。`};
+  return {cls:'tds-high',label:'明显偏高',text:`当前操作控制带 ${Math.round(lower)}–${Math.round(upper)} ppm 明显高于 ${p.name} 的建议区间，应降低Ca、Mg、HCO₃⁻和总盐量。`};
+};
+
+function cuiliRangeRisk(v,min,max,highSide=1){
+  if(v>=min&&v<=max)return 0;
+  const distance=v<min?min-v:v-max;
+  return clamp(distance/(v<min?.5:.4)*(v<min?4:6*highSide),0,10);
+}
+const cuiliGetComputedV261=getComputed;
+getComputed=function(){
+  const c=cuiliGetComputedV261();
+  if(cuiliIsTea()){
+    const p=PROFILE[selectedBean],src=cuiliTeaSource();
+    const hard=(c.loads.Ca||0)*2.497+(c.loads.Mg||0)*4.118;
+    const excessTds=Math.max(0,(c.tdsObj.effective||0)-p.tds[1]);
+    const teaFilm=clamp(hard/80*4+(c.loads.HCO3||0)/75*3+excessTds/35*3,0,10);
+    const coldHaze=clamp(hard/70*4+(c.bf.freeRate||0)*2.2+excessTds/40*2.5,0,10);
+    const phRisk=cuiliRangeRisk(src.ph,p.water.ph[0],p.water.ph[1],1.1);
+    const chlorineRisk=clamp(src.chlorine/0.20*8+(src.chlorine>0?1:0),0,10);
+    const ironRisk=clamp(src.iron/0.30*8+(src.iron>0?1:0),0,10);
+    const aromaSuppression=clamp(excessTds/30*4+phRisk*.45+chlorineRisk*.65+ironRisk*.35,0,10);
+    c.tea={profile:p,source:src,hardness:hard,teaFilm,coldHaze,phRisk,chlorineRisk,ironRisk,aromaSuppression};
+  }
+  lastComputed=c;return c;
+};
+
+const cuiliUpdateAllV261Tea=updateAll;
+updateAll=function(){
+  cuiliUpdateAllV261Tea();
+  cuiliUpdateModeLabels();
+  const c=lastComputed;
+  if(!c||!cuiliIsTea()){
+    if($('teaPlanGuidance'))$('teaPlanGuidance').classList.add('hidden');
+    return;
+  }
+  const p=PROFILE[selectedBean],t=c.tea,src=t.source;
+  v2SetText('v2MainId',p.code);
+  v2SetText('v2MainName',p.name+'｜茶类配方2.7审核版');
+  if($('teaPlanGuidance')){
+    $('teaPlanGuidance').classList.remove('hidden');
+    $('teaPlanGuidance').innerHTML=`<h4>🍵 ${p.name}用水建议与评估</h4><div class="tea-spec-grid"><div class="tea-spec"><small>资料TDS边界</small><b>${p.tds[0]}–${p.tds[1]} ppm</b></div><div class="tea-spec"><small>资料pH边界</small><b>${p.water.ph[0]}–${p.water.ph[1]}</b></div><div class="tea-spec"><small>当前硬度</small><b>${fmt(t.hardness,1)} mg/L</b></div></div><div class="tea-guidance-text"><strong>建议：</strong>${p.water.chem}<br><strong>当前源水输入：</strong>pH ${fmt(src.ph,2)}；游离氯 ${fmt(src.chlorine,2)} mg/L；铁 ${fmt(src.iron,2)} mg/L。<br><strong>评估边界：</strong>工具只计算矿物配方及风险代理值，不从TDS或HCO₃⁻推算pH，也不把资料中的铁&lt;2ppm解释为理想感官目标。</div>`;
+  }
+  v2SetText('v2Intent',`以RO水低剂量复矿，匹配${p.name}的TDS、硬度和缓冲边界；pH、游离氯和铁离子由实测输入参与评估。`);
+  v2SetText('v2BestFor',p.note);
+  v2SetText('v2Adv',p.water.chem);
+  v2SetText('v2Draw',p.water.risk+' 半有机盐模式仅作为实验路径，不能视为资料直接推荐。');
+  if($('tdsText'))$('tdsText').insertAdjacentHTML('beforeend',`<div class="tea-source-warning"><strong>茶模式附加控制：</strong>资料要求游离氯接近0；铁离子应尽可能低。pH必须用校准后的pH计或可靠试纸实测。TDS笔的ppm换算因仪表系数而异，本工具不直接套用“某电导率必然等于某TDS”的固定关系。</div>`);
+  if($('v2ReactionTags'))$('v2ReactionTags').insertAdjacentHTML('beforeend',`<span class="v2-tag">茶膜风险 ${fmt(t.teaFilm,1)}/10</span><span class="v2-tag">冷后浑风险 ${fmt(t.coldHaze,1)}/10</span><span class="v2-tag">源水pH需实测</span>`);
+};
+
+const cuiliRenderRiskPageV261Tea=renderRiskPage;
+renderRiskPage=function(){
+  cuiliRenderRiskPageV261Tea();
+  const c=lastComputed;if(!c||!cuiliIsTea())return;
+  const t=c.tea,p=PROFILE[selectedBean];
+  $('riskChips').insertAdjacentHTML('beforeend',`<span class="risk-chip ${riskClass(t.teaFilm)}">茶膜／茶垢：${riskText(t.teaFilm)}</span><span class="risk-chip ${riskClass(t.coldHaze)}">冷后浑：${riskText(t.coldHaze)}</span><span class="risk-chip ${riskClass(t.phRisk)}">源水pH：${riskText(t.phRisk)}</span><span class="risk-chip ${riskClass(t.chlorineRisk)}">游离氯：${riskText(t.chlorineRisk)}</span><span class="risk-chip ${riskClass(t.ironRisk)}">铁离子：${riskText(t.ironRisk)}</span>`);
+  const host=$('riskItems');
+  const boxes=[
+    ['茶膜／茶垢风险',`评分 ${fmt(t.teaFilm,1)}/10。当前综合硬度约 ${fmt(t.hardness,1)}mg/L（以CaCO₃计）。Ca²⁺、HCO₃⁻、茶多酚和空气界面共同提高茶膜风险。`],
+    ['冷后浑风险',`评分 ${fmt(t.coldHaze,1)}/10。高硬度、游离二价离子及高于茶类目标的TDS会促进多酚—咖啡碱聚集和离子桥联。`],
+    ['pH与多酚稳定性',`评分 ${fmt(t.phRisk,1)}/10。实测源水pH为 ${fmt(t.source.ph,2)}，${p.name}资料目标为 ${p.water.ph[0]}–${p.water.ph[1]}。该值由用户输入，配方模型不反推pH。`],
+    ['游离氯与香气',`评分 ${fmt(t.chlorineRisk,1)}/10。输入值 ${fmt(t.source.chlorine,2)}mg/L。资料目标为0ppm；检测到游离氯时，应优先处理源水，不应用加盐掩盖。`],
+    ['铁离子与茶多酚',`评分 ${fmt(t.ironRisk,1)}/10。输入值 ${fmt(t.source.iron,2)}mg/L。铁可与邻酚羟基络合并催化色泽劣变；资料中的&lt;2ppm是上限表述，不应作为理想目标。`],
+    ['茶类适配结论',`${p.water.chem} 当前主要关注：${p.water.risk}`]
+  ];
+  const tdsNode=[...host.children].find(n=>n.textContent.includes('TDS与整体强度'));
+  boxes.forEach(([title,txt],i)=>{const d=document.createElement('div');d.className='risk-item';d.id='teaRiskV27-'+i;d.innerHTML=`<h4>${title}</h4><p>${txt}</p>`;host.insertBefore(d,tdsNode||null);});
+  const formulaHigh=[t.teaFilm,t.coldHaze,t.aromaSuppression].some(v=>v>=5.2);
+  const sourceHigh=[t.phRisk,t.chlorineRisk,t.ironRisk].some(v=>v>=5.2);
+  $('optimAction').classList.toggle('hidden',!formulaHigh);
+  $('riskReturnAction').classList.toggle('hidden',formulaHigh);
+  if(sourceHigh&&!formulaHigh)$('optimAdvice').innerHTML='主要风险来自源水pH、游离氯或铁离子；调整母粉不能消除这些问题，应更换或处理源水。';
+  else if(formulaHigh)$('optimAdvice').innerHTML='检测到茶膜、冷后浑或压香风险，可降低Ca/Mg、HCO₃⁻及总盐量后返回方案页。';
+};
+
+const cuiliOptimizeRecipeV261Tea=optimizeRecipe;
+optimizeRecipe=function(){
+  if(!cuiliIsTea())return cuiliOptimizeRecipeV261Tea();
+  const c=lastComputed,t=c.tea,p=PROFILE[selectedBean],changes=[];
+  const add=(id,dv)=>{if(lastBase&&lastBase[id]){tweak[id]=clamp(tweak[id]+dv,-30,30);changes.push(`${MAT.find(m=>m.id===id).name} ${dv>0?'+':''}${dv}%`);}};
+  if(t.teaFilm>=5.2||t.coldHaze>=5.2){['cacl2','calac','mgso4','mglac'].forEach(id=>add(id,-7));['khco3','nahco3'].forEach(id=>add(id,-5));}
+  if(c.tdsObj.effective>p.tds[1]){['cacl2','calac','mgso4','mglac','khco3','nahco3'].forEach(id=>add(id,-4));}
+  if(t.aromaSuppression>=5.2){['mgso4','cacl2','khco3','nahco3'].forEach(id=>add(id,-4));}
+  const sourceWarn=[t.phRisk,t.chlorineRisk,t.ironRisk].some(v=>v>=5.2)?'；源水pH／游离氯／铁风险无法通过母粉优化，请处理源水':'';
+  optimizationMessage=changes.length?'茶模式已调整：'+changes.join('；')+sourceWarn:'当前盐配方无需自动调整'+sourceWarn;
+  updateAll();goPage('plan');
+};
+
+const cuiliOpenModalV261Tea=openModal;
+openModal=function(type){
+  cuiliOpenModalV261Tea(type);
+  if(type==='teaWater'){
+    $('modalTitle').textContent='茶类源水与配方边界';
+    $('modalBody').innerHTML=`<p><strong>茶模式新增三个实测输入：</strong>源水pH、游离氯和铁离子。它们不由配方盐量自动推算。</p><ul><li>资料按茶类给出TDS与pH范围；本工具再设置Ca、Mg、HCO₃⁻工程中心值。</li><li>游离氯目标按资料取0ppm；存在游离氯时优先使用活性炭过滤、可靠净水或更换水源。</li><li>铁离子可与茶多酚络合并催化暗化，应尽可能低；不能把“&lt;2ppm”理解为推荐值。</li><li>高硬度和高碱度会提高茶膜、冷后浑和香气钝化风险。</li><li>半有机盐可能改变络合与感官，仅作为实验路径；茶模式默认无机微矿化。</li></ul>`;
+  }
+};
+
+const cuiliInitV261Tea=init;
+init=function(){cuiliInitV261Tea();beverageMode=cuiliIsTea()?'tea':'coffee';cuiliUpdateModeLabels();};
+
 
 init();
 </script>
