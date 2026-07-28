@@ -1,0 +1,29 @@
+name: Export Brew Water Integration Snapshot
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration/luckybean-beta-v0.8
+      - name: Package coffee water model
+        run: |
+          set -euo pipefail
+          zip -qr brew-water-integration.zip index.html README.md package.json docs scripts -x 'node_modules/*'
+          sha256sum brew-water-integration.zip > brew-water-integration.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brew-water-integration
+          path: |
+            brew-water-integration.zip
+            brew-water-integration.zip.sha256
+          retention-days: 1
+          if-no-files-found: error
