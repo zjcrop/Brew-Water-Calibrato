@@ -1,0 +1,9 @@
+{
+  "provider": "brew-water-calibrato",
+  "type": "dataset-and-local-deterministic-engine",
+  "contract": "water-formulation/1.0",
+  "manifestUrl": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/latest.json",
+  "required": false,
+  "updatePolicy": "background-check-stage-verify-atomic-activate",
+  "failurePolicy": "retain-last-known-good"
+}
