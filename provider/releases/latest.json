@@ -1,17 +1,17 @@
 {
   "provider": "brew-water-calibrato",
   "contract": "water-formulation/1.0",
-  "releaseId": "brew-water-1.0.20260805+app.2.7.0",
-  "dataVersion": "1.0.20260805+app.2.7.0",
+  "releaseId": "brew-water-1.0.20260805+app.2.7.0.src.5a3084bdf9ee",
+  "dataVersion": "1.0.20260805+app.2.7.0.src.5a3084bdf9ee",
   "schemaVersion": "1.0",
-  "generatedAt": "2026-08-05T17:51:40+08:00",
+  "generatedAt": "2026-08-05T18:01:30+08:00",
   "status": "stable",
   "appendOnly": false,
   "source": {
     "repository": "zjcrop/Brew-Water-Calibrato",
     "ref": "main",
     "path": "index.html",
-    "commit": "70b1d502dc252fa0cb8a71f5926c529599bfa365"
+    "commit": "5a3084bdf9eee21ef12f99c423df1343da1f4cbc"
   },
   "compatibility": {
     "minimumConsumerContract": "water-formulation/1.0",
@@ -26,11 +26,11 @@
   "artifacts": [
     {
       "kind": "catalog",
-      "path": "data/water-chemistry-data-1.0.20260805+app.2.7.0.json",
-      "url": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/data/water-chemistry-data-1.0.20260805+app.2.7.0.json",
+      "path": "data/water-chemistry-data-1.0.20260805+app.2.7.0.src.5a3084bdf9ee.json",
+      "url": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/data/water-chemistry-data-1.0.20260805+app.2.7.0.src.5a3084bdf9ee.json",
       "mediaType": "application/json",
-      "bytes": 13316,
-      "sha256": "78a0f30b0f844318c2e175cd69c035b3c3b8b6cb0911e2c65f11dc8980e8d670"
+      "bytes": 13333,
+      "sha256": "fd3bfc20d8904ce9f34e6764cd1e326bc97cf0064e2d9de304e0361adf9f45fd"
     },
     {
       "kind": "module",
@@ -48,6 +48,7 @@
   ],
   "metadata": {
     "sourceAppVersion": "2.7.0",
+    "sourceRevision": "5a3084bdf9ee",
     "deterministicEngineVersion": "1.0.0",
     "dataSource": "constants-extracted-from-standalone-app-at-build-time"
   }

@@ -1,0 +1,560 @@
+{
+  "contract": "water-chemistry-data/1.0",
+  "sourceAppVersion": "2.7.0",
+  "solutes": [
+    {
+      "id": "cacl2",
+      "name": "CaCl₂｜无水氯化钙",
+      "group": "钙源",
+      "tier": "推荐",
+      "role": "钙结构 / 杯体",
+      "mw": 110.98,
+      "purity": 0.95,
+      "cation": "Ca",
+      "catN": 1,
+      "anion": "Cl",
+      "anN": 2,
+      "alkEq": 0,
+      "recommended": true,
+      "default": true,
+      "tip": "补充 Ca²⁺ 与 Cl⁻；高时硬、咸、苦、干；吸湿性强。"
+    },
+    {
+      "id": "calac",
+      "name": "乳酸钙五水合物",
+      "group": "钙源",
+      "tier": "推荐",
+      "role": "柔和钙 / 圆润",
+      "mw": 308.3,
+      "purity": 0.99,
+      "cation": "Ca",
+      "catN": 1,
+      "anion": "Lactate",
+      "anN": 2,
+      "alkEq": 0,
+      "recommended": true,
+      "default": true,
+      "tip": "补充 Ca²⁺ 与乳酸根；较柔和，过高可能粉感、钝感。"
+    },
+    {
+      "id": "caco3",
+      "name": "CaCO₃｜碳酸钙",
+      "group": "钙源",
+      "tier": "理论",
+      "role": "钙 + 碳酸根",
+      "mw": 100.09,
+      "purity": 0.99,
+      "cation": "Ca",
+      "catN": 1,
+      "anion": "CO3",
+      "anN": 1,
+      "alkEq": 2,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 Ca²⁺ 与 CO₃²⁻；低溶解度，易白垩、浑浊、沉淀、水垢。"
+    },
+    {
+      "id": "cacit",
+      "name": "柠檬酸钙",
+      "group": "钙源",
+      "tier": "谨慎",
+      "role": "钙 + 柠檬酸络合",
+      "mw": 570.49,
+      "purity": 0.99,
+      "cation": "Ca",
+      "catN": 3,
+      "anion": "Citrate",
+      "anN": 2,
+      "alkEq": 0.5,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 Ca²⁺ 与柠檬酸根；会络合 Ca/Mg，改变结构和酸质。"
+    },
+    {
+      "id": "caglu",
+      "name": "葡萄糖酸钙",
+      "group": "钙源",
+      "tier": "谨慎",
+      "role": "柔和钙",
+      "mw": 448.39,
+      "purity": 0.99,
+      "cation": "Ca",
+      "catN": 1,
+      "anion": "Gluconate",
+      "anN": 2,
+      "alkEq": 0,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 Ca²⁺ 与葡萄糖酸根；较柔，但用量大时可能甜钝。"
+    },
+    {
+      "id": "mgso4",
+      "name": "MgSO₄｜无水硫酸镁",
+      "group": "镁源",
+      "tier": "推荐",
+      "role": "镁香气 / 明亮度",
+      "mw": 120.37,
+      "purity": 0.99,
+      "cation": "Mg",
+      "catN": 1,
+      "anion": "SO4",
+      "anN": 1,
+      "alkEq": 0,
+      "recommended": true,
+      "default": true,
+      "tip": "补充 Mg²⁺ 与 SO₄²⁻；花果香与清晰度强，高时矿物、干涩。"
+    },
+    {
+      "id": "mglac",
+      "name": "乳酸镁二水合物",
+      "group": "镁源",
+      "tier": "推荐",
+      "role": "柔和镁",
+      "mw": 238.44,
+      "purity": 0.99,
+      "cation": "Mg",
+      "catN": 1,
+      "anion": "Lactate",
+      "anN": 2,
+      "alkEq": 0,
+      "recommended": true,
+      "default": true,
+      "tip": "补充 Mg²⁺ 与乳酸根；比硫酸镁更柔，过高可能钝。"
+    },
+    {
+      "id": "mgco3",
+      "name": "MgCO₃｜碳酸镁",
+      "group": "镁源",
+      "tier": "理论",
+      "role": "镁 + 碳酸根",
+      "mw": 84.31,
+      "purity": 0.99,
+      "cation": "Mg",
+      "catN": 1,
+      "anion": "CO3",
+      "anN": 1,
+      "alkEq": 2,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 Mg²⁺ 与 CO₃²⁻；低溶解度，易浑浊，不适合常规母粉。"
+    },
+    {
+      "id": "mgcl2",
+      "name": "MgCl₂·6H₂O｜六水氯化镁",
+      "group": "镁源",
+      "tier": "谨慎",
+      "role": "镁 + 氯根",
+      "mw": 203.3,
+      "purity": 0.99,
+      "cation": "Mg",
+      "catN": 1,
+      "anion": "Cl",
+      "anN": 2,
+      "alkEq": 0,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 Mg²⁺ 与 Cl⁻；溶解好，但高时苦咸、吸湿强。"
+    },
+    {
+      "id": "mgcit",
+      "name": "柠檬酸镁",
+      "group": "镁源",
+      "tier": "谨慎",
+      "role": "镁 + 柠檬酸络合",
+      "mw": 451.12,
+      "purity": 0.99,
+      "cation": "Mg",
+      "catN": 3,
+      "anion": "Citrate",
+      "anN": 2,
+      "alkEq": 0.5,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 Mg²⁺ 与柠檬酸根；可柔化，但可能削弱清晰度。"
+    },
+    {
+      "id": "mgglu",
+      "name": "葡萄糖酸镁",
+      "group": "镁源",
+      "tier": "谨慎",
+      "role": "柔和镁",
+      "mw": 450.65,
+      "purity": 0.99,
+      "cation": "Mg",
+      "catN": 1,
+      "anion": "Gluconate",
+      "anN": 2,
+      "alkEq": 0,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 Mg²⁺ 与葡萄糖酸根；用量大，可能甜钝或药感。"
+    },
+    {
+      "id": "khco3",
+      "name": "KHCO₃｜碳酸氢钾",
+      "group": "缓冲 / 钾钠",
+      "tier": "推荐",
+      "role": "HCO₃⁻缓冲 + K",
+      "mw": 100.115,
+      "purity": 0.99,
+      "cation": "K",
+      "catN": 1,
+      "anion": "HCO3",
+      "anN": 1,
+      "alkEq": 1,
+      "recommended": true,
+      "default": true,
+      "tip": "补充 K⁺ 与 HCO₃⁻；抑酸核心，高时钾盐苦涩、白垩感。"
+    },
+    {
+      "id": "nahco3",
+      "name": "NaHCO₃｜碳酸氢钠",
+      "group": "缓冲 / 钾钠",
+      "tier": "推荐",
+      "role": "HCO₃⁻缓冲 + Na",
+      "mw": 84.006,
+      "purity": 0.99,
+      "cation": "Na",
+      "catN": 1,
+      "anion": "HCO3",
+      "anN": 1,
+      "alkEq": 1,
+      "recommended": true,
+      "default": true,
+      "tip": "补充 Na⁺ 与 HCO₃⁻；可降低钾盐压力并帮助抑苦，高时钠感 / 碱感。"
+    },
+    {
+      "id": "k2co3",
+      "name": "K₂CO₃｜碳酸钾",
+      "group": "缓冲 / 钾钠",
+      "tier": "理论",
+      "role": "强碱度 + K",
+      "mw": 138.205,
+      "purity": 0.99,
+      "cation": "K",
+      "catN": 2,
+      "anion": "CO3",
+      "anN": 1,
+      "alkEq": 2,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 K⁺ 与 CO₃²⁻；碱性强，容易皂感 / 闷钝。"
+    },
+    {
+      "id": "na2co3",
+      "name": "Na₂CO₃｜碳酸钠",
+      "group": "缓冲 / 钾钠",
+      "tier": "理论",
+      "role": "强碱度 + Na",
+      "mw": 105.99,
+      "purity": 0.99,
+      "cation": "Na",
+      "catN": 2,
+      "anion": "CO3",
+      "anN": 1,
+      "alkEq": 2,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 Na⁺ 与 CO₃²⁻；碱感明显，易破坏酸质。"
+    },
+    {
+      "id": "nacl",
+      "name": "NaCl｜氯化钠",
+      "group": "感知盐",
+      "tier": "谨慎",
+      "role": "Na⁺感知抑苦，非缓冲",
+      "mw": 58.44,
+      "purity": 0.99,
+      "cation": "Na",
+      "catN": 1,
+      "anion": "Cl",
+      "anN": 1,
+      "alkEq": 0,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 Na⁺ 与 Cl⁻；极微量可抑苦，高时咸味明显。"
+    },
+    {
+      "id": "kcl",
+      "name": "KCl｜氯化钾",
+      "group": "感知盐",
+      "tier": "谨慎",
+      "role": "K⁺矿物感，非缓冲",
+      "mw": 74.55,
+      "purity": 0.99,
+      "cation": "K",
+      "catN": 1,
+      "anion": "Cl",
+      "anN": 1,
+      "alkEq": 0,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 K⁺ 与 Cl⁻；高时苦、金属、药感。"
+    },
+    {
+      "id": "nacit",
+      "name": "柠檬酸钠",
+      "group": "络合 / 缓冲",
+      "tier": "谨慎",
+      "role": "柠檬酸络合 + Na",
+      "mw": 294.1,
+      "purity": 0.99,
+      "cation": "Na",
+      "catN": 3,
+      "anion": "Citrate",
+      "anN": 1,
+      "alkEq": 1.5,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 Na⁺ 与柠檬酸根；可柔化并络合 Ca/Mg，高时柠檬盐感。"
+    },
+    {
+      "id": "kcit",
+      "name": "柠檬酸钾",
+      "group": "络合 / 缓冲",
+      "tier": "谨慎",
+      "role": "柠檬酸络合 + K",
+      "mw": 324.41,
+      "purity": 0.99,
+      "cation": "K",
+      "catN": 3,
+      "anion": "Citrate",
+      "anN": 1,
+      "alkEq": 1.5,
+      "recommended": false,
+      "default": false,
+      "tip": "补充 K⁺ 与柠檬酸根；可络合二价离子，高时钾盐苦涩。"
+    }
+  ],
+  "ionMolarMasses": {
+    "Ca": 40.078,
+    "Mg": 24.305,
+    "Na": 22.99,
+    "K": 39.098,
+    "HCO3": 61.017,
+    "CO3": 60.008,
+    "Cl": 35.45,
+    "SO4": 96.06,
+    "Lactate": 89.07,
+    "Citrate": 189.1,
+    "Gluconate": 195.17
+  },
+  "profiles": {
+    "geisha": {
+      "name": "高萜烯花香型｜巴拿马瑰夏 / 高香 Gesha",
+      "s": [
+        82,
+        48,
+        10,
+        16
+      ],
+      "tds": [
+        70,
+        100
+      ],
+      "si": 2,
+      "t": {
+        "ca": 5.5,
+        "mg": 12,
+        "hco3": 15,
+        "na": 0.32
+      },
+      "note": "极浅烘、高海拔、高萜烯花香和茶感。低 Ca、低碱度、中高 Mg，避免压香和白垩感。"
+    },
+    "ethiopia": {
+      "name": "水洗花香柑橘型｜埃塞 74110 / 74112",
+      "s": [
+        74,
+        56,
+        20,
+        20
+      ],
+      "tds": [
+        78,
+        108
+      ],
+      "si": 3,
+      "t": {
+        "ca": 7,
+        "mg": 12.5,
+        "hco3": 20,
+        "na": 0.35
+      },
+      "note": "茉莉、柑橘、茶感和轻盈甜感并重；Mg 保香，Ca 只做有限支撑。"
+    },
+    "kenya": {
+      "name": "高酸黑加仑型｜肯尼亚 SL28 / SL34",
+      "s": [
+        62,
+        48,
+        12,
+        18
+      ],
+      "tds": [
+        85,
+        120
+      ],
+      "si": 3,
+      "t": {
+        "ca": 7,
+        "mg": 15,
+        "hco3": 16,
+        "na": 0.34
+      },
+      "note": "保留磷酸触觉、黑加仑和明亮酸质；高 Mg、低碱度，不用强抑酸水。"
+    },
+    "sweet": {
+      "name": "高甜芳香型｜74158 / 粉波旁 / Sidra / Pacamara",
+      "s": [
+        66,
+        78,
+        30,
+        24
+      ],
+      "tds": [
+        88,
+        120
+      ],
+      "si": 4,
+      "t": {
+        "ca": 9.5,
+        "mg": 11.5,
+        "hco3": 25,
+        "na": 0.38
+      },
+      "note": "以浆果、热带水果、蔗糖感和圆润甜感为主；中等 Ca/Mg，控制碱度避免闷甜。"
+    },
+    "washed": {
+      "name": "干净平衡水洗型｜Typica / Bourbon / Caturra",
+      "s": [
+        54,
+        65,
+        30,
+        25
+      ],
+      "tds": [
+        90,
+        125
+      ],
+      "si": 4,
+      "t": {
+        "ca": 10,
+        "mg": 10.5,
+        "hco3": 28,
+        "na": 0.4
+      },
+      "note": "中美洲、哥伦比亚等干净水洗豆的通用平衡方案；酸甜、结构和洁净度均衡。"
+    },
+    "honey": {
+      "name": "蜜处理 / 半水洗甜圆型",
+      "s": [
+        50,
+        76,
+        38,
+        30
+      ],
+      "tds": [
+        95,
+        130
+      ],
+      "si": 5,
+      "t": {
+        "ca": 11,
+        "mg": 10,
+        "hco3": 32,
+        "na": 0.42
+      },
+      "note": "强调焦糖、蜜甜、圆润与中等果香；比水洗型提高 Ca 和缓冲，但控制矿物感。"
+    },
+    "natural": {
+      "name": "日晒 / 厌氧发酵型",
+      "s": [
+        58,
+        78,
+        48,
+        36
+      ],
+      "tds": [
+        100,
+        140
+      ],
+      "si": 5,
+      "t": {
+        "ca": 12,
+        "mg": 10.5,
+        "hco3": 36,
+        "na": 0.44
+      },
+      "note": "发酵酸、乳酸/乙酸、酒香和厚重水果感并存；需要中高结构和中等缓冲。"
+    },
+    "wethulled": {
+      "name": "湿刨醇厚香料型｜苏门答腊 / 印尼",
+      "s": [
+        34,
+        68,
+        45,
+        42
+      ],
+      "tds": [
+        100,
+        140
+      ],
+      "si": 6,
+      "t": {
+        "ca": 14,
+        "mg": 8.5,
+        "hco3": 35,
+        "na": 0.46
+      },
+      "note": "低调酸质、木质香料、草本与厚重醇感；提高 Ca，降低 Mg 的明亮驱动。"
+    },
+    "dark": {
+      "name": "中深 / 深烘巧克力抑苦型",
+      "s": [
+        24,
+        72,
+        50,
+        66
+      ],
+      "tds": [
+        90,
+        125
+      ],
+      "si": 4,
+      "t": {
+        "ca": 12,
+        "mg": 7,
+        "hco3": 32,
+        "na": 0.5
+      },
+      "note": "酸储备较低，目标是保留巧克力、焦糖和醇厚度，同时降低焦苦和尾段刺激。"
+    },
+    "custom": {
+      "name": "自定义研究型",
+      "s": [
+        70,
+        55,
+        15,
+        20
+      ],
+      "tds": [
+        85,
+        120
+      ],
+      "si": 3,
+      "t": {
+        "ca": 9,
+        "mg": 12,
+        "hco3": 28,
+        "na": 0.4
+      },
+      "note": "按当前风味预算、盐体系和硅路径计算。"
+    }
+  },
+  "scientificBoundaries": {
+    "tds": "Ionic mass sum and formulation arithmetic are not conductivity-derived TDS measurements.",
+    "pH": "pH is not predicted without carbonate equilibrium, dissolved CO2, temperature and activity coefficients.",
+    "precipitation": "Complete dissolution is an explicit idealization; low-solubility salts require separate experimental validation."
+  },
+  "dataVersion": "1.0.20260805+app.2.7.0.src.5a3084bdf9ee"
+}
