@@ -46,26 +46,37 @@ jobs:
       - run: npm ci
       - name: Test deterministic chemistry core
         run: npm run check
-      - name: Build and verify candidate provider and app bundle
+      - name: Resolve semantic source revision
+        id: source
         shell: bash
         run: |
           set -euo pipefail
-          DATE="$(git log -1 --format=%cI -- index.html core provider)"
-          SHA="$(git log -1 --format=%H -- index.html core provider)"
+          SOURCE_PATHS=(index.html core provider/scripts provider/schemas provider/tests provider/registry-entry.json package.json package-lock.json scripts/prepare-web.mjs)
+          echo "date=$(git log -1 --format=%cI -- "${SOURCE_PATHS[@]}")" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git log -1 --format=%H -- "${SOURCE_PATHS[@]}")" >> "$GITHUB_OUTPUT"
+      - name: Build and verify candidate provider and app bundle
+        shell: bash
+        env:
+          SOURCE_COMMIT_DATE: ${{ steps.source.outputs.date }}
+          SOURCE_COMMIT: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
           rm -rf "$RUNNER_TEMP/water-provider"
-          SOURCE_COMMIT_DATE="$DATE" SOURCE_COMMIT="$SHA" node provider/scripts/build-provider-release.mjs --output="$RUNNER_TEMP/water-provider"
+          node provider/scripts/build-provider-release.mjs --output="$RUNNER_TEMP/water-provider"
           node provider/scripts/verify-provider-release.mjs --output="$RUNNER_TEMP/water-provider"
-          SOURCE_COMMIT_DATE="$DATE" npm run prepare:web
+          npm run prepare:web
           test -s www/provider/latest.json
           grep -q "provider-bootstrap.mjs" www/index.html
+          node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync(process.argv[1]));const b=JSON.parse(fs.readFileSync(process.argv[2]));if(a.releaseId!==b.releaseId)throw new Error(`candidate/app release mismatch: ${a.releaseId} != ${b.releaseId}`)' "$RUNNER_TEMP/water-provider/latest.json" www/provider/latest.json
       - name: Publish verified provider release on main
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         shell: bash
+        env:
+          SOURCE_COMMIT_DATE: ${{ steps.source.outputs.date }}
+          SOURCE_COMMIT: ${{ steps.source.outputs.sha }}
         run: |
           set -euo pipefail
-          DATE="$(git log -1 --format=%cI -- index.html core provider)"
-          SHA="$(git log -1 --format=%H -- index.html core provider)"
-          SOURCE_COMMIT_DATE="$DATE" SOURCE_COMMIT="$SHA" node provider/scripts/build-provider-release.mjs --write
+          node provider/scripts/build-provider-release.mjs --write
           node provider/scripts/verify-provider-release.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
