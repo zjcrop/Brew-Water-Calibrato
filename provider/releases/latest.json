@@ -1,0 +1,54 @@
+{
+  "provider": "brew-water-calibrato",
+  "contract": "water-formulation/1.0",
+  "releaseId": "brew-water-1.0.20260805+app.2.7.0",
+  "dataVersion": "1.0.20260805+app.2.7.0",
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-08-05T17:51:40+08:00",
+  "status": "stable",
+  "appendOnly": false,
+  "source": {
+    "repository": "zjcrop/Brew-Water-Calibrato",
+    "ref": "main",
+    "path": "index.html",
+    "commit": "70b1d502dc252fa0cb8a71f5926c529599bfa365"
+  },
+  "compatibility": {
+    "minimumConsumerContract": "water-formulation/1.0",
+    "previousReleaseId": null,
+    "previousDataVersion": null
+  },
+  "counts": {
+    "solutes": 19,
+    "profiles": 10,
+    "ions": 11
+  },
+  "artifacts": [
+    {
+      "kind": "catalog",
+      "path": "data/water-chemistry-data-1.0.20260805+app.2.7.0.json",
+      "url": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/data/water-chemistry-data-1.0.20260805+app.2.7.0.json",
+      "mediaType": "application/json",
+      "bytes": 13316,
+      "sha256": "78a0f30b0f844318c2e175cd69c035b3c3b8b6cb0911e2c65f11dc8980e8d670"
+    },
+    {
+      "kind": "module",
+      "path": "modules/water-engine-1.0.0.mjs",
+      "url": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/modules/water-engine-1.0.0.mjs",
+      "mediaType": "text/javascript",
+      "bytes": 11520,
+      "sha256": "82697183b19dce64d95434cf845b186b00cf9467d44805919507750594137e3f"
+    }
+  ],
+  "warnings": [
+    "Calculated ionic mass sum is not a conductivity-derived TDS measurement.",
+    "pH is not predicted without carbonate equilibrium, dissolved CO2, temperature and activity coefficients.",
+    "Complete dissolution and no precipitation are explicit idealizations; low-solubility salts require experimental validation."
+  ],
+  "metadata": {
+    "sourceAppVersion": "2.7.0",
+    "deterministicEngineVersion": "1.0.0",
+    "dataSource": "constants-extracted-from-standalone-app-at-build-time"
+  }
+}
