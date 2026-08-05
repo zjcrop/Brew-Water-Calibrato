@@ -7,6 +7,12 @@ on:
     paths:
       - index.html
       - assets/**
+      - core/**
+      - provider/**
+      - scripts/prepare-web.mjs
+      - package.json
+      - package-lock.json
+      - .github/workflows/deploy-pages.yml
 
 permissions:
   contents: read
@@ -21,25 +27,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - name: Verify permanent v2.7 source
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Verify standalone source and shared provider core
         run: |
           set -euxo pipefail
           test -s index.html
           grep -q "CUI_LI_V27_TEA_PATCH" index.html
           grep -q "咖啡与茶冲泡调水 配方2.7版" index.html
+          npm run check
+          SOURCE_COMMIT_DATE="$(git log -1 --format=%cI -- index.html core provider)" npm run prepare:web
+          test -s www/provider/latest.json
+          test -s www/core/water-engine.mjs
+          grep -q "provider-bootstrap.mjs" www/index.html
       - uses: actions/configure-pages@v5
-      - name: Prepare static site
-        run: |
-          set -euxo pipefail
-          rm -rf _site
-          mkdir -p _site
-          cp index.html _site/index.html
-          if [ -d assets ]; then cp -R assets _site/assets; fi
-          touch _site/.nojekyll
+      - run: touch www/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: _site
+          path: www
   deploy:
     environment:
       name: github-pages
