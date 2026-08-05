@@ -3,6 +3,16 @@ import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
+const sourcePaths = ['index.html', 'core', 'provider/scripts', 'provider/schemas', 'provider/tests', 'provider/registry-entry.json', 'package.json', 'package-lock.json', 'scripts/prepare-web.mjs'];
+
+async function gitValue(format) {
+  try {
+    const { stdout } = await execFileAsync('git', ['log', '-1', `--format=${format}`, '--', ...sourcePaths]);
+    return stdout.trim();
+  } catch {
+    return '';
+  }
+}
 
 await rm('www', { recursive: true, force: true });
 await mkdir('www', { recursive: true });
@@ -22,10 +32,11 @@ try {
 }
 await cp('core', 'www/core', { recursive: true });
 
-const sourceCommitDate = process.env.SOURCE_COMMIT_DATE ?? new Date().toISOString();
+const sourceCommitDate = process.env.SOURCE_COMMIT_DATE || await gitValue('%cI') || new Date(0).toISOString();
+const sourceCommit = process.env.SOURCE_COMMIT || await gitValue('%H') || 'unknown';
 await execFileAsync(process.execPath, ['provider/scripts/build-provider-release.mjs', '--output=www/provider'], {
-  env: { ...process.env, SOURCE_COMMIT_DATE: sourceCommitDate }
+  env: { ...process.env, SOURCE_COMMIT_DATE: sourceCommitDate, SOURCE_COMMIT: sourceCommit }
 });
 await execFileAsync(process.execPath, ['provider/scripts/verify-provider-release.mjs', '--output=www/provider']);
 
-console.log('Prepared verified www bundle: standalone UI + shared water core + provider release.');
+console.log(`Prepared verified www bundle from source ${sourceCommit.slice(0, 12)}: standalone UI + shared water core + provider release.`);
