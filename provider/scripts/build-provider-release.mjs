@@ -17,8 +17,10 @@ const dataset = extractEmbeddedDataset(fs.readFileSync(path.join(repoRoot, 'inde
 validateDataset(dataset);
 if (dataset.sourceAppVersion !== pkg.version) throw new Error(`App version drift: dataset=${dataset.sourceAppVersion}, package=${pkg.version}`);
 const sourceDate = (process.env.SOURCE_COMMIT_DATE ?? new Date(0).toISOString()).replace(/\.\d{3}Z$/, 'Z');
+const sourceCommit = String(process.env.SOURCE_COMMIT ?? 'unknown').toLowerCase();
+const sourceRevision = /^[0-9a-f]{8,40}$/.test(sourceCommit) ? sourceCommit.slice(0, 12) : 'unknown';
 const datePart = sourceDate.slice(0, 10).replaceAll('-', '');
-const dataVersion = `1.0.${datePart}+app.${pkg.version}`;
+const dataVersion = `1.0.${datePart}+app.${pkg.version}.src.${sourceRevision}`;
 const dataRel = `data/water-chemistry-data-${dataVersion}.json`;
 const moduleRel = 'modules/water-engine-1.0.0.mjs';
 fs.mkdirSync(path.join(out, 'data'), { recursive: true });
@@ -47,7 +49,7 @@ const manifest = {
   generatedAt: sourceDate,
   status: 'stable',
   appendOnly: false,
-  source: { repository: 'zjcrop/Brew-Water-Calibrato', ref: 'main', path: 'index.html', commit: process.env.SOURCE_COMMIT ?? null },
+  source: { repository: 'zjcrop/Brew-Water-Calibrato', ref: 'main', path: 'index.html', commit: sourceRevision === 'unknown' ? null : sourceCommit },
   compatibility: { minimumConsumerContract: 'water-formulation/1.0', previousReleaseId: null, previousDataVersion: null },
   counts: { solutes: dataset.solutes.length, profiles: Object.keys(dataset.profiles).length, ions: Object.keys(dataset.ionMolarMasses).length },
   artifacts: [makeArtifact('catalog', dataRel, 'application/json'), makeArtifact('module', moduleRel, 'text/javascript')],
@@ -56,7 +58,7 @@ const manifest = {
     'pH is not predicted without carbonate equilibrium, dissolved CO2, temperature and activity coefficients.',
     'Complete dissolution and no precipitation are explicit idealizations; low-solubility salts require experimental validation.'
   ],
-  metadata: { sourceAppVersion: pkg.version, deterministicEngineVersion: '1.0.0', dataSource: 'constants-extracted-from-standalone-app-at-build-time' }
+  metadata: { sourceAppVersion: pkg.version, sourceRevision, deterministicEngineVersion: '1.0.0', dataSource: 'constants-extracted-from-standalone-app-at-build-time' }
 };
 fs.writeFileSync(path.join(out, 'latest.json'), JSON.stringify(manifest, null, 2) + '\n', 'utf8');
 console.log(JSON.stringify({ output: out, releaseId: manifest.releaseId, counts: manifest.counts }, null, 2));
