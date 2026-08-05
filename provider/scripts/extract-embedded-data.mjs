@@ -31,7 +31,8 @@ function extractLiteral(source, variableName) {
   throw new Error(`Unterminated ${variableName} literal.`);
 }
 
-export function extractEmbeddedDataset(indexHtml) {
+export function extractEmbeddedDataset(indexHtml, { sourceAppVersion } = {}) {
+  if (!sourceAppVersion || typeof sourceAppVersion !== 'string') throw new Error('sourceAppVersion must be supplied by package.json.');
   const source = String(indexHtml);
   const context = vm.createContext(Object.create(null));
   const evaluate = (name) => new vm.Script(`(${extractLiteral(source, name)})`).runInContext(context, { timeout: 1000 });
@@ -40,7 +41,7 @@ export function extractEmbeddedDataset(indexHtml) {
   const profiles = JSON.parse(JSON.stringify(evaluate('PROFILE')));
   return {
     contract: 'water-chemistry-data/1.0',
-    sourceAppVersion: '2.7.0',
+    sourceAppVersion,
     solutes,
     ionMolarMasses,
     profiles,
@@ -55,7 +56,8 @@ export function extractEmbeddedDataset(indexHtml) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const input = process.argv[2] ?? 'index.html';
   const output = process.argv[3];
-  const dataset = extractEmbeddedDataset(fs.readFileSync(input, 'utf8'));
+  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  const dataset = extractEmbeddedDataset(fs.readFileSync(input, 'utf8'), { sourceAppVersion: pkg.version });
   const text = JSON.stringify(dataset, null, 2) + '\n';
   if (output) {
     fs.mkdirSync(new URL('.', `file://${output}`).pathname, { recursive: true });
