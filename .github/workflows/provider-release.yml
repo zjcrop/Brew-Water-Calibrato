@@ -1,0 +1,75 @@
+name: Brew Water provider release
+
+on:
+  pull_request:
+    paths:
+      - index.html
+      - core/**
+      - provider/**
+      - scripts/prepare-web.mjs
+      - package.json
+      - package-lock.json
+      - .github/workflows/provider-release.yml
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - core/**
+      - provider/schemas/**
+      - provider/scripts/**
+      - provider/tests/**
+      - provider/registry-entry.json
+      - scripts/prepare-web.mjs
+      - package.json
+      - package-lock.json
+      - .github/workflows/provider-release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: brew-water-provider-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Test deterministic chemistry core
+        run: npm run check
+      - name: Build and verify candidate provider and app bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          DATE="$(git log -1 --format=%cI -- index.html core provider)"
+          SHA="$(git log -1 --format=%H -- index.html core provider)"
+          rm -rf "$RUNNER_TEMP/water-provider"
+          SOURCE_COMMIT_DATE="$DATE" SOURCE_COMMIT="$SHA" node provider/scripts/build-provider-release.mjs --output="$RUNNER_TEMP/water-provider"
+          node provider/scripts/verify-provider-release.mjs --output="$RUNNER_TEMP/water-provider"
+          SOURCE_COMMIT_DATE="$DATE" npm run prepare:web
+          test -s www/provider/latest.json
+          grep -q "provider-bootstrap.mjs" www/index.html
+      - name: Publish verified provider release on main
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DATE="$(git log -1 --format=%cI -- index.html core provider)"
+          SHA="$(git log -1 --format=%H -- index.html core provider)"
+          SOURCE_COMMIT_DATE="$DATE" SOURCE_COMMIT="$SHA" node provider/scripts/build-provider-release.mjs --write
+          node provider/scripts/verify-provider-release.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add provider/releases
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "data(provider): publish verified water release [skip provider]"
+          git push
