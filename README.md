@@ -83,14 +83,14 @@ Brew-Water-Calibrato 是水质与复矿数据提供方。跨项目传递的业�
 
 | 字段 | 含义 | 单位/约束 |
 |---|---|---|
-| source | 水源或配方来源 | 稳定标识或文本 |
-| volume_l | 配制或使用体积 | L |
-| tds_mg_l | TDS/总溶解固体 | mg/L；不得反推 pH |
-| ph | 酸碱度 | 无量纲，标注实测或计算来源 |
-| ca_mg_l、mg_mg_l、na_mg_l | 钙、镁、钠 | mg/L |
-| hco3_mg_l | 碳酸氢根 | mg/L |
-| alkalinity_mg_l_as_caco3 | 总碱度 | mg/L as CaCO₃ |
-| cl_mg_l、fe_mg_l | 氯、铁 | mg/L，注明测定对象 |
+| profileId、source | 水型与水源/配方来源 | 稳定标识或文本 |
+| recipeVolumeL | 配制或使用体积 | L |
+| tdsMgL | TDS/总溶解固体 | mg/L；不得反推 pH |
+| pH、pHSource | 酸碱度及来源 | 无量纲；标注实测或计算来源 |
+| calciumMgL、magnesiumMgL、sodiumMgL | 钙、镁、钠 | mg/L |
+| bicarbonateMgL | 碳酸氢根 | mg/L |
+| alkalinityMgLAsCaCO3 | 总碱度 | mg/L as CaCO₃ |
+| chlorideMgL、freeChlorineMgL、ironMgL | 氯离子、游离氯、铁 | mg/L，注明测定对象 |
 
 字段缺失表示未提供，不表示零；未知值不得用零填充。TDS、pH、游离氯和铁的测量边界必须保留来源说明。
 
