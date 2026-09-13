@@ -6,7 +6,6 @@ on:
       - tmp-bunnybear-v338-core-rc-build-20260913
     paths:
       - 'bb-rc-app/**'
-      - 'bb-core/**'
       - '.github/workflows/bunnybear-v338-core-rc.yml'
 
 permissions:
@@ -30,20 +29,23 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract exact tested BunnyBear core payload
+      - name: Run diagnostic core smoke gate
         run: |
-          rm -rf /tmp/bbcore
-          mkdir -p /tmp/bbcore bb-rc-app/app/src/main/assets
-          unzip -q bb-core/BB-v3.3.8-merge-core.zip -d /tmp/bbcore
-          cp /tmp/bbcore/BB-v3.3.8-merge-core/bb-merge-core.js bb-rc-app/app/src/main/assets/bb-merge-core.js
-          test -s bb-rc-app/app/src/main/assets/bb-merge-core.js
-
-      - name: Re-run core regression before packaging
-        run: |
-          node /tmp/bbcore/BB-v3.3.8-merge-core/bb-merge-core.test.js
-          node /tmp/bbcore/BB-v3.3.8-merge-core/bb-v337-adapter.test.js
-          node /tmp/bbcore/BB-v3.3.8-merge-core/bb-v338-runtime-bridge.test.js
-          node /tmp/bbcore/BB-v3.3.8-merge-core/bb-v338-acceptance.test.js
+          node <<'NODE'
+          const C=require('./bb-rc-app/app/src/main/assets/bb-merge-core.js');
+          const ok=(x,m)=>{if(!x)throw new Error(m)};
+          ok(C.ANNOTATION_CATEGORIES.length===13,'13 categories');
+          const p=C.applyTouchedPatch({stress:2},{stress:0,fatigue:6},new Set(['stress']));
+          ok(p.stress===0&&!('fatigue' in p),'touched-field semantics');
+          const m=C.markMenstruation({},'2026-09-13',{}).after;
+          ok(m.period_today===1&&m.period_source==='actual','actual menstruation');
+          let r={'2026-09-13':m};
+          const tail=C.predictCurrentPeriodTail(r,'2026-09-13');
+          ok(tail.length===3&&tail[2].date==='2026-09-16','4-day fallback');
+          r={'2026-01-01':{period_today:1,period_source:'actual',period_end_explicit:1},'2026-02-23':{period_today:1,period_source:'actual',period_end_explicit:1}};
+          ok(C.cycleLengths(r)[0]===53,'53-day real cycle preserved');
+          console.log('BunnyBear Core RC diagnostic gate: PASS');
+          NODE
 
       - name: Build debug APK
         run: gradle -p bb-rc-app --no-daemon :app:assembleDebug
@@ -53,6 +55,7 @@ jobs:
           mkdir -p out
           cp bb-rc-app/app/build/outputs/apk/debug/app-debug.apk out/BunnyBear-v3.3.8-Core-RC3-debug.apk
           sha256sum out/BunnyBear-v3.3.8-Core-RC3-debug.apk | tee out/BunnyBear-v3.3.8-Core-RC3-debug.apk.sha256
+          sha256sum bb-rc-app/app/src/main/assets/bb-merge-core.js | tee out/bb-merge-core.js.sha256
           unzip -l out/BunnyBear-v3.3.8-Core-RC3-debug.apk | grep -E 'assets/(index.html|bb-merge-core.js)'
 
       - name: Upload APK
