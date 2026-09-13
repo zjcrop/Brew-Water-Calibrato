@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>BunnyBear Core RC</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#272235;background:#f5f1fb}*{box-sizing:border-box}body{margin:0;padding:env(safe-area-inset-top) 16px calc(28px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#efe7fb,#fbf9fd);min-height:100vh}.hero{padding:24px 4px 12px}.brand{font-size:28px;font-weight:800;letter-spacing:.2px}.sub{margin-top:6px;color:#726b80;font-size:14px;line-height:1.55}.warning{margin:12px 0 16px;padding:12px 14px;background:#fff6df;border:1px solid #ecd59b;border-radius:14px;font-size:13px;line-height:1.55}.card{background:rgba(255,255,255,.92);border:1px solid rgba(87,64,114,.10);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 8px 22px rgba(78,51,105,.07)}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.title{font-size:16px;font-weight:750}.muted{font-size:12px;color:#81798d}.badge{border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700;background:#ece7f3;color:#5f556d}.badge.pass{background:#e4f4e6;color:#34743e}.badge.fail{background:#fde8e8;color:#a13c3c}button{width:100%;border:0;border-radius:14px;padding:14px 16px;background:#5f4d78;color:#fff;font-size:15px;font-weight:700;margin-top:12px}button:active{transform:scale(.99)}.tests{display:grid;gap:9px;margin-top:12px}.test{padding:11px 12px;border-radius:12px;background:#f8f6fb;font-size:13px;line-height:1.45}.test b{display:block;margin-bottom:3px}.ok{border-left:4px solid #65b96e}.bad{border-left:4px solid #e45757}.kv{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:13px;padding:7px 0;border-bottom:1px solid #eeeaf2}.kv:last-child{border-bottom:0}.footer{font-size:11px;color:#8e8798;text-align:center;margin-top:18px;line-height:1.5}</style>
+</head>
+<body>
+<div class="hero">
+  <div class="brand">BunnyBear Core RC</div>
+  <div class="sub">v3.3.8 核心验证 APK · 独立包名 · 不覆盖正式 BB</div>
+</div>
+<div class="warning"><b>注意：</b>这是可安装的核心验证版，不是 v3.3.7 完整 UI 的正式升级包。用途是确认本轮数据、预测与同步核心能在 Android WebView 正常执行。</div>
+<div class="card">
+  <div class="row"><div class="title">运行环境</div><span id="overall" class="badge">检查中</span></div>
+  <div style="margin-top:10px">
+    <div class="kv"><span>核心版本</span><b id="coreVersion">—</b></div>
+    <div class="kv"><span>业务 Schema</span><b id="businessVersion">—</b></div>
+    <div class="kv"><span>预测 Schema</span><b id="predictionVersion">—</b></div>
+    <div class="kv"><span>13 项标注契约</span><b id="categories">—</b></div>
+  </div>
+  <button onclick="runAll()">重新运行核心自检</button>
+</div>
+<div class="card">
+  <div class="title">设备内自检</div>
+  <div id="tests" class="tests"></div>
+</div>
+<div class="card">
+  <div class="title">预测示例</div>
+  <div id="predictionDemo" class="tests"></div>
+</div>
+<div class="footer">Build target: Android WebView · package com.yuelan.bb338core<br>不读取、不修改正式 BunnyBear 数据。</div>
+<script src="bb-merge-core.js"></script>
+<script>
+(function(){
+'use strict';
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function actual(date,end){var r={period_today:1,period_source:'actual',_recordDate:date};if(end)r.period_end_explicit=1;return r;}
+function addTest(name,ok,detail){return '<div class="test '+(ok?'ok':'bad')+'"><b>'+esc(name)+' · '+(ok?'PASS':'FAIL')+'</b>'+esc(detail||'')+'</div>';}
+window.runAll=function(){
+  var host=document.getElementById('tests'), out=[], pass=0,total=0;
+  try{
+    var C=window.BBMergeCore;if(!C)throw new Error('BBMergeCore 未加载');
+    document.getElementById('coreVersion').textContent=C.CORE_VERSION;
+    document.getElementById('businessVersion').textContent=C.BUSINESS_SCHEMA_VERSION;
+    document.getElementById('predictionVersion').textContent=C.PREDICTION_SCHEMA_VERSION;
+    document.getElementById('categories').textContent=C.ANNOTATION_CATEGORIES.length+' 项';
+    function t(n,fn){total++;try{var r=fn();var ok=r===true||(r&&r.ok===true);if(ok)pass++;out.push(addTest(n,ok,(r&&r.detail)||''));}catch(e){out.push(addTest(n,false,e.message));}}
+    t('未触碰字段不写默认值',function(){var r=C.applyTouchedPatch({stress:2},{fatigue:6,stress:0},new Set(['stress']));return {ok:r.stress===0&&!('fatigue' in r),detail:'0 被保留，fatigue 未被写入'};});
+    t('标注月经即形成实际记录',function(){var r=C.markMenstruation({},'2026-09-13',{}).after;return {ok:r.period_today===1&&r.period_source==='actual',detail:'无需二次确认'};});
+    t('历史不足默认 4 天尾段',function(){var rec={'2026-09-13':actual('2026-09-13',false)};var p=C.predictCurrentPeriodTail(rec,'2026-09-13');return {ok:p.length===3&&p[2].date==='2026-09-16',detail:'实际第1天 + 预测3天 = 默认4天'};});
+    t('明确提前结束优先',function(){var rec={'2026-09-13':actual('2026-09-13',false),'2026-09-14':actual('2026-09-14',true)};return {ok:C.predictCurrentPeriodTail(rec,'2026-09-14').length===0,detail:'第2天明确结束后不再补预测'};});
+    t('周期按开始日到开始日',function(){var rec={'2026-01-01':actual('2026-01-01',true),'2026-02-23':actual('2026-02-23',true)};var v=C.cycleLengths(rec);return {ok:v.length===1&&v[0]===53,detail:'真实 53 天周期被保留'};});
+    t('13 项标注固定',function(){return {ok:C.ANNOTATION_CATEGORIES.length===13,detail:C.ANNOTATION_CATEGORIES.map(x=>x.name).join('、')};});
+    t('0/false 与未知分离',function(){var r=C.applyTouchedPatch({}, {stress:0,illness:false}, new Set(['stress','illness']));return {ok:r.stress===0&&r.illness===false,detail:'明确 0/否不会被当作缺失'};});
+    t('饮食规律互斥契约',function(){var a=C.normalizeDietPatch({diet_regularity:'规律'});var threw=false;try{C.normalizeDietPatch({diet_regularity:'有时'});}catch(e){threw=true;}return {ok:a.diet_regularity==='规律'&&threw,detail:'只接受“规律/不规律”'};});
+    host.innerHTML=out.join('');
+    var badge=document.getElementById('overall');badge.textContent=pass+'/'+total+' PASS';badge.className='badge '+(pass===total?'pass':'fail');
+    var demo={'2026-07-01':actual('2026-07-01',true),'2026-08-23':actual('2026-08-23',true),'2026-09-13':actual('2026-09-13',false)};
+    var m=C.cycleMetrics(demo,'2026-09-13'),tail=C.predictCurrentPeriodTail(demo,'2026-09-13');
+    document.getElementById('predictionDemo').innerHTML='<div class="test ok"><b>当前预测尾段</b>'+esc(tail.map(x=>x.date).join('、')||'无')+'</div><div class="test ok"><b>周期指标</b>历史平均周期：'+esc(m.historyAvgCycle==null?'—':m.historyAvgCycle)+' 天；下次预测周期：'+esc(m.predictedNextCycle==null?'—':m.predictedNextCycle)+' 天</div>';
+  }catch(e){host.innerHTML=addTest('核心加载',false,e.message);var b=document.getElementById('overall');b.textContent='FAIL';b.className='badge fail';}
+};
+window.addEventListener('load',runAll);
+})();
+</script>
+</body>
+</html>
