@@ -1,0 +1,25 @@
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.BBMergeCore=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){'use strict';
+const CORE_VERSION='bb-merge-core/1.0.1-rc-diagnostic',BUSINESS_SCHEMA_VERSION='bb-business/3.3.8',PREDICTION_SCHEMA_VERSION='bb-prediction/2.5';
+const CLEAR=Object.freeze({__bb_clear__:true});const DAY=86400000;
+const ANNOTATION_CATEGORIES=Object.freeze([{id:'period',name:'月经'},{id:'sex',name:'亲密互动'},{id:'measure',name:'体温/试纸'},{id:'cm',name:'白带'},{id:'symptom',name:'症状'},{id:'skin',name:'皮肤'},{id:'mood',name:'心情'},{id:'lifestyle',name:'生活状态'},{id:'sleep',name:'睡眠'},{id:'diet',name:'饮食'},{id:'weight',name:'体重'},{id:'medication',name:'用药'},{id:'exam',name:'检查'}]);
+function date(s){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s||''));if(!m)throw new Error('invalid date: '+s);return new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));}
+function ds(d){return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');}
+function addDays(s,n){const d=date(s);d.setUTCDate(d.getUTCDate()+Number(n||0));return ds(d)}
+function diffDays(a,b){return Math.round((date(b)-date(a))/DAY)}
+function isClear(v){return v===CLEAR||(v&&v.__bb_clear__===true)}
+function clone(x){return x==null?x:JSON.parse(JSON.stringify(x))}
+function applyTouchedPatch(current,patch,touched){const out={...(current||{})},set=touched instanceof Set?touched:new Set(touched||Object.keys(patch||{}));for(const k of set){if(!patch||!(k in patch))continue;const v=patch[k];if(isClear(v)||v==='')delete out[k];else if(v!==undefined)out[k]=clone(v)}return out}
+function markMenstruation(current,d,details={}){const p={period_today:1,period_source:'actual'};for(const k of ['period_flow','period_color','period_clot'])if(Object.prototype.hasOwnProperty.call(details,k))p[k]=details[k];return {date:d,before:clone(current||{}),after:{...(current||{}),...p,_recordDate:d},changed:true}}
+function actual(r){return !!r&&r.period_today===1&&r.period_source!=='predicted'&&r.period_source!=='model'}
+function episodes(records){const days=Object.keys(records||{}).filter(k=>actual(records[k])).sort(),out=[];let cur=null;for(const d of days){const r=records[d]||{},newEp=!cur||diffDays(cur.end,d)>1||((records[cur.end]||{}).period_end_explicit===1);if(newEp){cur={start:d,end:d,days:[d]};out.push(cur)}else{cur.end=d;cur.days.push(d)}}for(const e of out){e.closed=!!(records[e.end]||{}).period_end_explicit;e.length=e.days.length}return out}
+function historicalPeriodLengths(records){const e=episodes(records);return e.filter((x,i)=>x.closed||i<e.length-1).filter(x=>x.length>=1&&x.length<=15).map(x=>x.length)}
+function median(a){const b=[...a].sort((x,y)=>x-y),m=Math.floor(b.length/2);return b.length%2?b[m]:(b[m-1]+b[m])/2}
+function estimatePeriodLength(records){const v=historicalPeriodLengths(records);if(v.length<2)return {days:4,source:'fallback',samples:v.length};const recent=v.slice(-3),days=Math.max(3,Math.min(10,Math.round(median(v)*.7+(recent.reduce((a,b)=>a+b,0)/recent.length)*.3)));return {days,source:'history',samples:v.length}}
+function predictCurrentPeriodTail(records,today){const e=episodes(records),ep=e[e.length-1];if(!ep||ep.closed)return [];const target=Math.max(3,estimatePeriodLength(records).days),out=[];for(let i=ep.days.length;i<target;i++){const d=addDays(ep.start,i);if((records[d]||{}).period_end_explicit===1)break;if(actual(records[d]))continue;out.push({date:d,kind:'period',predicted:true,source:'prediction'})}return out}
+function periodStarts(records){return episodes(records).map(x=>x.start)}
+function cycleLengths(records){const s=periodStarts(records),out=[];for(let i=1;i<s.length;i++){const n=diffDays(s[i-1],s[i]);if(n>=15&&n<=180)out.push(n)}return out}
+function robustCycleEstimate(values){if(!values.length)return {days:null,source:'none',samples:0};if(values.length===1)return {days:values[0],source:'single',samples:1};const med=median(values),abs=values.map(x=>Math.abs(x-med)),mad=median(abs)||Math.max(2,med*.08),n=values.length;let sw=0,sx=0;values.forEach((x,i)=>{const rec=.75+.5*(i/Math.max(1,n-1)),z=Math.abs(x-med)/Math.max(1,1.4826*mad),w=rec/(1+.35*z*z);sw+=w;sx+=x*w});return {days:Math.round(sx/sw),source:'robust-history',samples:n}}
+function cycleMetrics(records){const c=cycleLengths(records),e=robustCycleEstimate(c),p=historicalPeriodLengths(records);return {avgPeriodDays:p.length?Math.round((p.reduce((a,b)=>a+b,0)/p.length)*10)/10:null,periodSamples:p.length,historyAvgCycle:c.length?Math.round((c.reduce((a,b)=>a+b,0)/c.length)*10)/10:null,cycleSamples:c.length,predictedNextCycle:e.days,predictionMethod:e.source}}
+function normalizeDietPatch(p){const o={...(p||{})};if(o.diet_regularity&& !['规律','不规律'].includes(o.diet_regularity))throw new Error('diet_regularity must be 规律 or 不规律');return o}
+return {CORE_VERSION,BUSINESS_SCHEMA_VERSION,PREDICTION_SCHEMA_VERSION,CLEAR,ANNOTATION_CATEGORIES,addDays,diffDays,applyTouchedPatch,markMenstruation,predictCurrentPeriodTail,cycleLengths,cycleMetrics,normalizeDietPatch};
+});
