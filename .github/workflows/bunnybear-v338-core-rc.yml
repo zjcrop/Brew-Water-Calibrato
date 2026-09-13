@@ -1,0 +1,64 @@
+name: BunnyBear v3.3.8 Core RC APK
+
+on:
+  push:
+    branches:
+      - tmp-bunnybear-v338-core-rc-build-20260913
+    paths:
+      - 'bb-rc-app/**'
+      - 'bb-core/**'
+      - '.github/workflows/bunnybear-v338-core-rc.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extract exact tested BunnyBear core payload
+        run: |
+          rm -rf /tmp/bbcore
+          mkdir -p /tmp/bbcore bb-rc-app/app/src/main/assets
+          unzip -q bb-core/BB-v3.3.8-merge-core.zip -d /tmp/bbcore
+          cp /tmp/bbcore/BB-v3.3.8-merge-core/bb-merge-core.js bb-rc-app/app/src/main/assets/bb-merge-core.js
+          test -s bb-rc-app/app/src/main/assets/bb-merge-core.js
+
+      - name: Re-run core regression before packaging
+        run: |
+          node /tmp/bbcore/BB-v3.3.8-merge-core/bb-merge-core.test.js
+          node /tmp/bbcore/BB-v3.3.8-merge-core/bb-v337-adapter.test.js
+          node /tmp/bbcore/BB-v3.3.8-merge-core/bb-v338-runtime-bridge.test.js
+          node /tmp/bbcore/BB-v3.3.8-merge-core/bb-v338-acceptance.test.js
+
+      - name: Build debug APK
+        run: gradle -p bb-rc-app --no-daemon :app:assembleDebug
+
+      - name: Prepare artifact and checksums
+        run: |
+          mkdir -p out
+          cp bb-rc-app/app/build/outputs/apk/debug/app-debug.apk out/BunnyBear-v3.3.8-Core-RC3-debug.apk
+          sha256sum out/BunnyBear-v3.3.8-Core-RC3-debug.apk | tee out/BunnyBear-v3.3.8-Core-RC3-debug.apk.sha256
+          unzip -l out/BunnyBear-v3.3.8-Core-RC3-debug.apk | grep -E 'assets/(index.html|bb-merge-core.js)'
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BunnyBear-v3.3.8-Core-RC3-debug
+          path: out/*
+          if-no-files-found: error
+          retention-days: 7
