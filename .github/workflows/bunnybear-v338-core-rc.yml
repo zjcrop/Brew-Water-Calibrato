@@ -31,8 +31,9 @@ jobs:
 
       - name: Run diagnostic core smoke gate
         run: |
+          cp bb-rc-app/app/src/main/assets/bb-merge-core.js /tmp/bb-merge-core.cjs
           node <<'NODE'
-          const C=require('./bb-rc-app/app/src/main/assets/bb-merge-core.js');
+          const C=require('/tmp/bb-merge-core.cjs');
           const ok=(x,m)=>{if(!x)throw new Error(m)};
           ok(C.ANNOTATION_CATEGORIES.length===13,'13 categories');
           const p=C.applyTouchedPatch({stress:2},{stress:0,fatigue:6},new Set(['stress']));
