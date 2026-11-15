@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>萃离｜咖啡与茶冲泡调水 配方2.8版</title>
+<title>萃离｜咖啡与茶冲泡调水 配方2.8版 · 加热建议</title>
 <link rel="icon" type="image/png" href="assets/app-icon.png">
 <style>
 :root{
@@ -16,6 +16,8 @@
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;overflow-x:hidden}
 body{padding-bottom:94px}
 button,input,select{font:inherit}
+#thermalSettings a{color:var(--blue);text-underline-offset:3px}
+#exportWaterButton:disabled{opacity:.5;cursor:not-allowed}
 .page{display:none;padding:14px 14px 24px;max-width:560px;margin:0 auto}
 .page.active{display:block}
 .card{background:linear-gradient(180deg,#0d1118,#10141b);border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.22)}
@@ -377,7 +379,7 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
     <div>
       <h4>版本说明</h4>
       <div class="about-badges">
-        <span class="about-badge">版本 2.8</span>
+        <span class="about-badge">版本 2.8.1</span>
         <span class="about-badge">统一离子核算与称量复核</span>
       </div>
       <p>本版使用完整比例水滴图作为 APP 图标，保留新版启动主页设计图；关于页增加返回按钮，风险页在无中高风险时提供返回方案物质用量区域的快捷按钮。</p>
@@ -606,6 +608,30 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
         <div class="v2-tablewrap" style="margin-top:12px"><table class="v2-table"><thead><tr><th>项目</th><th class="r">估算值</th><th>解释</th></tr></thead><tbody id="v2IonBody"></tbody></table></div>
       </div>
     </div>
+
+    <div class="note-box" id="thermalSummary" role="status"></div>
+    <details class="measure-settings" id="thermalSettings"><summary>单次加热与 LuckyBean 用水建议</summary>
+      <div class="helper" style="margin:10px 0">仅考虑新配水的一次加热，到目标冲煮温度后使用。加热前离子按投料核算，未知项留空；没有通用析出温度。</div>
+      <div class="measure-grid">
+        <label>使用设备<select id="thermalContext" class="select-like" onchange="updateAll()"><option value="kettle">开放式水壶</option><option value="espresso-boiler">意式承压锅炉</option><option value="unknown" selected>未确认</option></select></label>
+        <label>加热最高温度 °C<input id="thermalTemperature" class="select-like" type="number" min="0" max="150" step="0.1" placeholder="未知" oninput="updateAll()"></label>
+        <label>实测蒸发损失 %<input id="thermalEvaporation" class="select-like" type="number" min="0" max="99.9" step="0.1" placeholder="未知" oninput="updateAll()"></label>
+        <label>可见析出或沉积<select id="thermalVisible" class="select-like" onchange="updateAll()"><option value="unknown">未检查</option><option value="no">未见</option><option value="yes">已见</option></select></label>
+      </div>
+      <details style="margin-top:12px"><summary>可选：同方法前后实测（mg/L as CaCO₃）</summary>
+        <div class="measure-grid" style="margin-top:10px">
+          <label>加热前 GH<input id="thermalPreGH" class="select-like" type="number" min="0" max="10000" step="0.1" placeholder="未测" oninput="updateAll()"></label>
+          <label>热后样品 GH<input id="thermalPostGH" class="select-like" type="number" min="0" max="10000" step="0.1" placeholder="未测" oninput="updateAll()"></label>
+          <label>加热前总碱度<input id="thermalPreAlk" class="select-like" type="number" min="0" max="10000" step="0.1" placeholder="未测" oninput="updateAll()"></label>
+          <label>热后样品总碱度<input id="thermalPostAlk" class="select-like" type="number" min="0" max="10000" step="0.1" placeholder="未测" oninput="updateAll()"></label>
+        </div>
+        <p class="helper">记录取样时间、冷却方式、检测方法与终点。总硬度差不能单独换算为钙损失。</p>
+      </details>
+      <div id="thermalAdvice" class="helper" style="margin-top:12px"></div>
+      <button class="mini-btn" style="margin-top:12px" id="exportWaterButton" onclick="downloadWaterRecord()">导出给 LuckyBean 的水记录</button>
+      <div id="waterExportStatus" class="helper" role="status"></div>
+      <p class="helper"><a href="https://doi.org/10.1038/s41598-020-73341-4" target="_blank" rel="noopener">温度与萃取研究</a> · <a href="https://www.mdpi.com/2073-4441/13/1/42" target="_blank" rel="noopener">碳酸钙沉淀潜力研究</a></p>
+    </details>
 
     <div id="recipeSection" class="recipe-section-anchor">
       <div class="section-title" style="margin-top:18px">📋 各种物质用量</div>
@@ -1761,8 +1787,49 @@ getComputed=function(){
     if(src.ph!==null&&(src.ph<band[0]||src.ph>band[1]))c.teaWarnings.push(`源水pH ${src.ph}偏离当前茶预设的${band[0]}–${band[1]}参考带，请复核实测与茶汤表现；这不是饮用安全结论。`);
     if(src.chlorine>0||src.iron>0)c.teaWarnings.push('源水检出游离氯或铁；母粉不能消除这些成分，请处理或更换水源。');
   }
+  Object.assign(c,globalThis.CuiLiUiEngine.assessThermalWater({ionsMgL:c.loads,...cuiliThermalInputs()}));
   lastBase=c.baseAmounts;lastComputed=c;return c;
 };
+function cuiliThermalInputs(){
+  const optional=(id,label,max)=>{
+    const input=$(id),text=input.value.trim();
+    if(input.validity.badInput)throw new Error(label+'必须为有效数字，未知请留空');
+    if(text==='')return null;
+    const n=Number(text);
+    if(!Number.isFinite(n)||n<0||n>max)throw new Error(label+'超出记录范围，未知请留空');
+    return n;
+  };
+  const evaporation=optional('thermalEvaporation','蒸发损失 %',99.9);
+  return {context:$('thermalContext').value,heatingTemperatureC:optional('thermalTemperature','加热温度',150),
+    evaporationFraction:evaporation===null?null:evaporation/100,
+    visiblePrecipitate:$('thermalVisible').value==='unknown'?null:$('thermalVisible').value==='yes',
+    preHeatGHmgLAsCaCO3:optional('thermalPreGH','加热前GH',10000),postHeatGHmgLAsCaCO3:optional('thermalPostGH','热后GH',10000),
+    preHeatAlkalinitymgLAsCaCO3:optional('thermalPreAlk','加热前总碱度',10000),postHeatAlkalinitymgLAsCaCO3:optional('thermalPostAlk','热后总碱度',10000)};
+}
+function cuiliRenderThermal(c){
+  const a=c.heatingAssessment,history=a.history;
+  const name=value=>value===null?'未知':String(value);
+  const title=!a.applicable?'请确认设备适用范围':a.flags.length?'热历史需要复核':'记录加热方式，稳定冲煮用水';
+  $('thermalSummary').textContent=title+'。仅考虑新配水单次加热至冲煮温度后使用；不因未测的失钙量自动降低冲煮温度或缩短萃取。';
+  const lines=[`单次加热：最高温度 ${name(history.heatingTemperatureC)} °C。`,...a.advice];
+  if(a.evaporationScenario)lines.push('纯蒸发、无反应假设的保守溶质浓缩倍率：'+fmt(a.evaporationScenario.nonreactiveConcentrationFactor,4)+'；不用于预测热后Ca/Mg/HCO₃。');
+  const d=a.measuredDifferences;
+  if(d.hardnessMgLAsCaCO3!==null)lines.push('实测GH后减前：'+fmt(d.hardnessMgLAsCaCO3,2)+' mg/L as CaCO₃；不是计算失钙量。');
+  if(d.totalAlkalinityMgLAsCaCO3!==null)lines.push('实测总碱度后减前：'+fmt(d.totalAlkalinityMgLAsCaCO3,2)+' mg/L as CaCO₃。');
+  $('thermalAdvice').replaceChildren(...lines.map(text=>{const p=document.createElement('p');p.textContent=text;return p;}));
+  $('exportWaterButton').disabled=false;$('waterExportStatus').textContent='导出保留加热前投料账本和独立热史，不把未知TDS、pH或热后浓度填成零。';
+}
+function createCurrentWaterRecord(){
+  if(!lastComputed)throw new Error('请先修正输入并完成方案计算');
+  return globalThis.CuiLiUiEngine.createWaterTransferRecord({formulation:lastComputed,profileId:selectedBean,heatingAssessment:lastComputed.heatingAssessment});
+}
+function downloadWaterRecord(){
+  try{
+    const record=createCurrentWaterRecord(),url=URL.createObjectURL(new Blob([JSON.stringify(record,null,2)],{type:'application/json'}));
+    const link=document.createElement('a');link.href=url;link.download='cuili-water-record.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    $('waterExportStatus').textContent='水记录已导出；请在已升级的 LuckyBean 自定义水中导入。';
+  }catch(error){$('waterExportStatus').textContent=error.message;}
+}
 function cuiliResultError(error){
   lastComputed=null;
   $('engineStatus').className='engine-status invalid';$('engineStatus').textContent='暂不能计算：'+error.message;
@@ -1774,6 +1841,8 @@ function cuiliResultError(error){
   $('v2IonBody').innerHTML='';$('riskItems').innerHTML='<div class="risk-item"><h4>输入尚未通过核验</h4><p>'+error.message+'</p></div>';
   $('riskChips').innerHTML='';$('optimAction').classList.add('hidden');$('riskReturnAction').classList.remove('hidden');
   $('optimAdvice').textContent='请返回配方页检查输入，当前不提供称量方案。';
+  $('thermalSummary').textContent='输入未通过核验，当前不能提供水记录或热史建议。';$('thermalAdvice').textContent='';
+  $('exportWaterButton').disabled=true;$('waterExportStatus').textContent='请先修正输入';
 }
 function cuiliRiskText(risk,c){
   const ion=c.loads,number=(value)=>fmt(value||0,1);
@@ -1795,12 +1864,14 @@ updateAll=function(){
   v2SetText('flavorFeedback',cuiliBudgetNotice||'总预算200；加减按钮每次调整5点，超出预算时其他项按比例让量。');
   try{
     const c=getComputed(),p=PROFILE[selectedBean],digits=c.scaleResolutionG<.01?3:2;
-    const needsReview=!c.matched||c.risks.risks.length>0||!c.ionicAccountingComplete||(c.teaWarnings||[]).length>0;
+    const needsReview=!c.matched||c.risks.risks.length>0||!c.ionicAccountingComplete||(c.teaWarnings||[]).length>0||c.heatingAssessment.flags.length>0;
     $('engineStatus').className='engine-status '+(needsReview?'review':'verified');
     const mismatchMessage=c.ionMatched!==false&&c.silicaDoseMatched===false?'<strong>硅粉名义投料存在称量偏差</strong><span>离子目标已核对；硅粉微量用量受天平分辨率影响，可改用母粉放大称量。请查看硅粉请求与实际名义量。</span>':'<strong>部分目标存在偏差</strong><span>请查看离子核对与硅粉名义量，或调整盐源、微调和天平分辨率。</span>';
     $('engineStatus').innerHTML=!c.matched?mismatchMessage:c.risks.risks.length?'<strong>离子目标已核对，浓度需留意</strong><span>部分离子超过保守筛查阈值，请查看下方离子表和风险提醒。</span>':!c.ionicAccountingComplete?'<strong>已知离子已核对，硅载体信息不完整</strong><span>电荷、电导和总碱度仍需补充载体组成并实测。</span>':'<strong>离子目标与称量已核对</strong><span>下方结果按显示称量值重新计算 · 基础水为接近零矿化RO水</span>';
     if(c.risks.risks.length)$('engineStatus').insertAdjacentHTML('beforeend','<span>'+c.risks.risks.map(risk=>cuiliRiskText(risk,c)).join(' ')+'</span>');
     if((c.teaWarnings||[]).length)$('engineStatus').insertAdjacentHTML('beforeend','<span>'+c.teaWarnings.join(' ')+'</span>');
+    cuiliRenderThermal(c);
+    if(c.heatingAssessment.flags.length)$('engineStatus').insertAdjacentHTML('beforeend','<span>单次加热记录中有蒸发或可见析出，请查看加热建议；加热后实际离子待实测。</span>');
     $('mixSummary').textContent=outputMode==='premix'?`母粉实际总量 ${fmt(c.actualBatchG,digits)} g`:`配方水 ${fmt(c.outputAmount,1)} L`;
     v2SetText('v2MainId',c.matched?'已核对':'需复核');v2SetText('v2MainName',p.name+'｜配方2.8');
     v2SetText('dose5L',fmt(c.total,digits)+'g');
@@ -1890,6 +1961,7 @@ renderRiskPage=function(){
   if(c.silicaDoseMatched===false)items.push(['硅粉名义量需复核',`请求纯SiO₂名义${fmt(c.silica.requestedNominalSiO2MgL??c.silica.nominalPureSiO2MgL,3)} mg/L，显示称量后约${fmt(c.silica.nominalSiO2MgL,3)} mg/L。可选择更精细天平或通过母粉放大称量；不代表实际溶解浓度。`]);
   for(const risk of c.risks.risks)items.push(['浓度筛查提醒',cuiliRiskText(risk,c)+' 该提示不是经杯测验证的风味或设备安全阈值。']);
   for(const text of c.warnings)items.push(['需留意',text]);
+  for(const text of c.heatingAssessment?.advice||[])items.push(['加热与冲煮用水',text]);
   items.push(['化学模型边界','未预测pH、真实结合率、沉淀率或咖啡中各酸的萃取率。沉淀与络合需溶液平衡数据和实验验证。']);
   items.push(['研究依据','近期研究支持优先观察碳酸氢根与感知酸度；尚无通用证据保证某个Ca/Mg比或某种盐能增强特定豆的花香。']);
   if(cuiliIsTea()){

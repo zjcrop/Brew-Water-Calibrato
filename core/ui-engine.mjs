@@ -1,6 +1,8 @@
 import { formulateBrewingWater, calculateIonLoads, calculateWaterMetrics, chargeBalance, quantizeDose, evaluateOperationalRisks } from './water-engine.mjs';
 import { buildWeighingOrder } from './weighing-order.mjs';
 import { calculateSilicaPowderDose, calculateActualSilicaPowderDose } from './silica-dose.mjs';
+export { assessThermalWater } from './thermal-water.mjs';
+export { createWaterTransferRecord } from './water-transfer.mjs';
 
 const atomic = { Na:22.990, K:39.098 };
 const sum = values => Object.values(values).reduce((a,b)=>a+b,0);

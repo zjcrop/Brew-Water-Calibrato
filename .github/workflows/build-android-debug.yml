@@ -35,9 +35,9 @@ jobs:
           test -s index.html
           test -f android/gradlew
           grep -q "CUI_LI_V27_TEA_PATCH" index.html
-          grep -q '"version": "2.8.0"' package.json
-          grep -q 'versionCode 20800' android/app/build.gradle
-          grep -q 'versionName "2.8.0"' android/app/build.gradle
+          grep -q '"version": "2.8.1"' package.json
+          grep -q 'versionCode 20801' android/app/build.gradle
+          grep -q 'versionName "2.8.1"' android/app/build.gradle
       - uses: actions/setup-node@v6
         with:
           node-version: "22.16.0"
@@ -89,12 +89,12 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk dist/Brew-Water-Calibrato-v2.8.0-debug.apk
-          sha256sum dist/Brew-Water-Calibrato-v2.8.0-debug.apk > dist/SHA256SUMS.txt
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/Brew-Water-Calibrato-v2.8.1-debug.apk
+          sha256sum dist/Brew-Water-Calibrato-v2.8.1-debug.apk > dist/SHA256SUMS.txt
           cp TEA_WATER_AUDIT_v2.7.md dist/
       - uses: actions/upload-artifact@v7
         with:
-          name: Brew-Water-Calibrato-v2.8.0-debug
+          name: Brew-Water-Calibrato-v2.8.1-debug
           path: dist/
           if-no-files-found: error
           retention-days: 30

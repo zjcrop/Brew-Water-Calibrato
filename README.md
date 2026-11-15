@@ -1,13 +1,14 @@
-# 萃离｜Coffee & Tea Water Calibrator 2.8.0
+# 萃离｜Coffee & Tea Water Calibrator 2.8.1
 
 面向咖啡与茶冲泡的RO水复矿、配方计算及操作核验工具。
 
-- 网页版本：2.8；Android版本：2.8.0，versionCode 20800。
+- 网页版本：2.8.1；Android版本：2.8.1，versionCode 20801。
 - 统一化学计量核心：1.1.0；跨项目water-formulation/1.0契约继续保留。
 - 保留咖啡与茶、半有机与无机盐、风味预算、预混母粉及配方水模式。
 - 新增准确配比联动、独立调量、批次纯度、常见水合盐、称量顺序、量化后离子复核和实时提示。
+- 新增单次加热记录、前后实测区分及LuckyBean水记录导出，不凭温度自动预测失钙或修改萃取时长。
 
-详见 [升级说明](docs/RELEASE_v2.8.md) 与 [研究依据和验证边界](docs/SCIENCE_AND_VALIDATION_v2.8.md)。原2.7茶类研究和2.6.1审核保留作历史记录。
+详见 [本次升级说明](docs/RELEASE_v2.8.1.md)、[单次加热研究](docs/THERMAL_WATER_GUIDANCE.md) 与 [2.8研究依据](docs/SCIENCE_AND_VALIDATION_v2.8.md)。原2.7茶类研究和2.6.1审核保留作历史记录。
 
 ## 运行与验证
 
@@ -22,7 +23,7 @@
 
 ## 发布
 
-GitHub Pages与Android工作流均会校验共享核心。Android工作流版本为2.8.0；只在实际构建成功后提供APK，不将网页验证等同设备测试。仓库本地变更不会自动更新已发布网站或用户手机。
+GitHub Pages与Android工作流均会校验共享核心。Android工作流版本为2.8.1；只在实际构建成功后提供APK，不将网页验证等同设备测试。仓库本地变更不会自动更新已发布网站或用户手机。
 
 ## 计算边界
 
@@ -44,6 +45,8 @@ Brew-Water-Calibrato 是水质与复矿数据提供方。跨项目传递的业�
 | bicarbonateMgL | 碳酸氢根 | mg/L |
 | alkalinityMgLAsCaCO3 | 总碱度 | mg/L as CaCO₃ |
 | chlorideMgL、freeChlorineMgL、ironMgL | 氯离子、游离氯、铁 | mg/L，注明测定对象 |
+| concentrationBasis | 浓度来源口径 | pre-heating-calculated表示加热前投料计算值，不表示热后实测 |
+| heatingAssessment | 独立的单次加热记录和使用建议 | 未知热后浓度保持null；不覆盖原业务浓度 |
 
 字段缺失表示未提供，不表示零；未知值不得用零填充。TDS、pH、游离氯和铁的测量边界必须保留来源说明。
 
