@@ -363,7 +363,10 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
 <section id="page-home" class="page active">
   <div class="card hero-card">
     <div class="home-visual">
-      <img class="hero-svg" src="assets/home-start.jpg" alt="萃离首页视觉海报">
+      <!-- Crop the original poster's 256px bottom blank; keep artwork pixels unchanged. -->
+      <svg class="hero-svg" viewBox="0 0 945 1792" preserveAspectRatio="xMidYMax slice" role="img" aria-label="萃离首页视觉海报" focusable="false" overflow="hidden">
+        <image href="assets/home-start.jpg" width="945" height="2048"/>
+      </svg>
     </div>
     <div class="home-control">
       <div class="home-actions">
