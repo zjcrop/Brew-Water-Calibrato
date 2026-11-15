@@ -1,0 +1,9 @@
+*.mjs text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+# SHA-256 manifests describe exact artifact bytes on every checkout platform.
+provider/releases/** -text
