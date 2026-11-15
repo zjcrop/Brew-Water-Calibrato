@@ -26,7 +26,7 @@ button,input,select{font:inherit}
 /* 首页顶部改为用户提供的 SVG 视觉页 */
 .home-visual{height:48vh;min-height:360px;max-height:620px;position:relative;background:#020304;overflow:hidden;border-bottom:1px solid #181d25;display:flex;align-items:flex-start;justify-content:center}
 .home-visual::after{content:"";position:absolute;left:0;right:0;bottom:0;height:32%;background:linear-gradient(180deg,rgba(5,6,8,0),rgba(5,6,8,.72),#0d1118)}
-.home-visual .hero-svg{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;filter:drop-shadow(0 10px 30px rgba(0,0,0,.25))}
+.home-visual .hero-svg{width:100%;height:100%;object-fit:cover;object-position:center bottom;display:block;filter:drop-shadow(0 10px 30px rgba(0,0,0,.25))}
 .hero-content{padding:14px 16px 18px}
 .brand-line{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#121722;border:1px solid #2a3140;color:#e9eef6;font-size:12px;font-weight:800}
 .brand-line img{width:18px;height:18px;border-radius:50%}
@@ -254,7 +254,7 @@ input[type=range]{width:100%;accent-color:#ff9a3d}
 /* 2.2 配方界面重构 */
 .home-visual{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;display:block!important}
 .home-visual::after{display:none!important}
-.home-visual .hero-svg{width:100%!important;height:auto!important;object-fit:contain!important;object-position:center top!important;display:block!important}
+.home-visual .hero-svg{width:100%!important;height:auto!important;object-fit:contain!important;object-position:center bottom!important;display:block!important}
 .home-control{padding:14px;background:#0d1118;border-top:1px solid #181d25}
 .home-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:10px}
 .about-panel{display:none;margin-top:12px;padding:14px;border-radius:18px;background:#10161e;border:1px solid #273241}
@@ -324,7 +324,8 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
 #page-home .hero-card{width:100%;max-width:560px;min-height:100dvh;margin:0 auto;border-radius:0!important;display:flex;flex-direction:column;overflow:hidden}
 #page-home .home-visual{flex:1 1 0!important;height:0!important;min-height:0!important;max-height:none!important;overflow:hidden!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;background:#020304}
 #page-home .home-visual::after{display:none!important}
-#page-home .home-visual .hero-svg{width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;object-fit:cover!important;object-position:center top!important;display:block!important}
+/* Keep the poster footer visible; shorter screens crop from its top. */
+#page-home .home-visual .hero-svg{width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;object-fit:cover!important;object-position:center bottom!important;display:block!important}
 #page-home .home-control{flex:0 0 auto;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:#0d1118;border-top:1px solid #181d25}
 #page-home .home-actions button{min-height:48px}
 @media(max-width:430px){
