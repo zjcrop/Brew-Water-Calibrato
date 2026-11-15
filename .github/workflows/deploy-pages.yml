@@ -28,6 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -40,7 +42,7 @@ jobs:
           grep -q "CUI_LI_V27_TEA_PATCH" index.html
           grep -q "咖啡与茶冲泡调水 配方2.8版" index.html
           npm run check
-          SOURCE_COMMIT_DATE="$(git log -1 --format=%cI -- index.html core provider)" npm run prepare:web
+          npm run prepare:web
           test -s www/provider/latest.json
           test -s www/core/water-engine.mjs
           grep -q "provider-bootstrap.mjs" www/index.html

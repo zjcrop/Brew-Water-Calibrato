@@ -9,3 +9,7 @@ android/app/build/
 android/local.properties
 android/capacitor.settings.gradle
 android/app/src/main/assets/public/
+*.jks
+*.keystore
+*.p12
+keystore.properties

@@ -1,5 +1,27 @@
 apply plugin: 'com.android.application'
 
+// Keep signing material outside the repository. Debug builds need none of these.
+def cuiliReleaseSigning = [
+    storePath: System.getenv('CUILI_ANDROID_KEYSTORE_PATH'),
+    storePassword: System.getenv('CUILI_ANDROID_STORE_PASSWORD'),
+    keyAlias: System.getenv('CUILI_ANDROID_KEY_ALIAS'),
+    keyPassword: System.getenv('CUILI_ANDROID_KEY_PASSWORD')
+]
+def cuiliReleaseSigningReady = cuiliReleaseSigning.values().every { it != null && !it.isEmpty() }
+
+// Never turn an intended release into an unsigned or debug-signed APK.
+gradle.taskGraph.whenReady { graph ->
+    def packagesRelease = graph.allTasks.any {
+        it.project == project && it.name in ['assembleRelease', 'bundleRelease', 'packageRelease', 'installRelease']
+    }
+    if (packagesRelease && !cuiliReleaseSigningReady) {
+        throw new GradleException('Release signing requires CUILI_ANDROID_KEYSTORE_PATH, CUILI_ANDROID_STORE_PASSWORD, CUILI_ANDROID_KEY_ALIAS and CUILI_ANDROID_KEY_PASSWORD.')
+    }
+    if (packagesRelease && !file(cuiliReleaseSigning.storePath).isFile()) {
+        throw new GradleException('The configured release keystore file does not exist.')
+    }
+}
+
 android {
     namespace = "com.zjcrop.brewwater"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +38,22 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (cuiliReleaseSigningReady) {
+                storeFile file(cuiliReleaseSigning.storePath)
+                storePassword cuiliReleaseSigning.storePassword
+                keyAlias cuiliReleaseSigning.keyAlias
+                keyPassword cuiliReleaseSigning.keyPassword
+                storeType 'PKCS12'
+            }
+        }
+    }
     buildTypes {
         release {
+            if (cuiliReleaseSigningReady) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

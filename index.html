@@ -378,7 +378,7 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
   <div class="about-meta">
     <div>
       <h4>软件说明</h4>
-      <p>萃离用于咖啡与茶冲泡水复矿、分类预设载入、表达微调、物质用量换算、TDS预测与风险筛查；茶模式增加源水pH、游离氯、铁离子、茶膜与冷后浑评估。所有计算均为配方研究模型，原料化学式、水合状态、纯度与批次数据必须与实际采购物一致。</p>
+      <p>萃离用于咖啡与茶冲泡水复矿、预设选择、风味目标微调、物质用量换算、离子核算及电导/TDS参考。茶模式可记录源水pH、游离氯与铁，不预测茶膜或冷后浑比例。原料化学式、水合状态、纯度与批次数据必须与实际采购物一致；计算不能替代实液测定与杯测。</p>
     </div>
     <div>
       <h4>版本说明</h4>
@@ -386,7 +386,7 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
         <span class="about-badge">版本 2.8.1</span>
         <span class="about-badge">统一离子核算与称量复核</span>
       </div>
-      <p>本版使用完整比例水滴图作为 APP 图标，保留新版启动主页设计图；关于页增加返回按钮，风险页在无中高风险时提供返回方案物质用量区域的快捷按钮。</p>
+      <p>本版统一离子核算与称量复核，增加盐量实时联动、亲水SiO₂名义剂量和单次加热记录。首页图片底部对齐并裁去多余空白，保留声明与返回操作。</p>
     </div>
     <div>
       <h4>版权说明</h4>
@@ -1827,12 +1827,16 @@ function createCurrentWaterRecord(){
   if(!lastComputed)throw new Error('请先修正输入并完成方案计算');
   return globalThis.CuiLiUiEngine.createWaterTransferRecord({formulation:lastComputed,profileId:selectedBean,heatingAssessment:lastComputed.heatingAssessment});
 }
-function downloadWaterRecord(){
+async function downloadWaterRecord(){
+  if(downloadWaterRecord.pending)return;
+  downloadWaterRecord.pending=true;$('exportWaterButton').disabled=true;
   try{
-    const record=createCurrentWaterRecord(),url=URL.createObjectURL(new Blob([JSON.stringify(record,null,2)],{type:'application/json'}));
-    const link=document.createElement('a');link.href=url;link.download='cuili-water-record.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-    $('waterExportStatus').textContent='水记录已导出；请在已升级的 LuckyBean 自定义水中导入。';
-  }catch(error){$('waterExportStatus').textContent=error.message;}
+    if(typeof globalThis.CuiLiExportWaterRecord!=='function')throw new Error('导出组件尚未就绪');
+    $('waterExportStatus').textContent='正在保存水记录…';
+    const result=await globalThis.CuiLiExportWaterRecord(createCurrentWaterRecord());
+    $('waterExportStatus').textContent=result.status==='cancelled'?'已取消保存，水记录未导出。':result.status==='saved'?'水记录已保存；请在已升级的 LuckyBean 自定义水中导入。':'已请求浏览器下载水记录；请确认下载完成后在已升级的 LuckyBean 自定义水中导入。';
+  }catch(error){$('waterExportStatus').textContent='水记录导出失败：'+error.message;}
+  finally{downloadWaterRecord.pending=false;$('exportWaterButton').disabled=!lastComputed;}
 }
 function cuiliResultError(error){
   lastComputed=null;
@@ -1994,7 +1998,9 @@ openModal=function(type){
 </script>
 <script type="module">
 import * as uiEngine from './core/ui-engine.mjs';
+import {createWaterRecordExporter} from './core/water-export.mjs';
 globalThis.CuiLiUiEngine=uiEngine;
+globalThis.CuiLiExportWaterRecord=createWaterRecordExporter();
 for(const id of ['floral','sweet','acid','bitter']){
   const range=document.getElementById(id);range.setAttribute('aria-label',id+'风味目标');
   range.insertAdjacentHTML('afterend',`<div class="tweak-head"><button class="mini-btn" onclick="nudgeFlavor('${id}',-5)">−5</button><small class="helper">0–100点</small><button class="mini-btn" onclick="nudgeFlavor('${id}',5)">+5</button></div>`);

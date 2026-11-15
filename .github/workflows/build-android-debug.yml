@@ -1,4 +1,4 @@
-name: Build Android Debug APK
+name: Build and Publish Signed Android APK
 
 on:
   workflow_dispatch:
@@ -14,39 +14,81 @@ on:
       - capacitor.config.json
       - scripts/prepare-web.mjs
       - android/**
+      - .github/workflows/build-android-debug.yml
+      - docs/RELEASE_v2.8.1.md
 
 permissions:
   contents: read
 
 concurrency:
-  group: android-debug-${{ github.ref }}
-  cancel-in-progress: true
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build-apk:
-    name: Build debug APK
+    name: Build signed release APK
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      apk_name: ${{ steps.version.outputs.apk_name }}
+      artifact_name: ${{ steps.version.outputs.artifact_name }}
     steps:
       - uses: actions/checkout@v6
-      - name: Verify permanent v2.8 source
+        with:
+          fetch-depth: 0
+      - name: Require release signing secrets
+        env:
+          CUILI_ANDROID_KEYSTORE_B64: ${{ secrets.CUILI_ANDROID_KEYSTORE_B64 }}
+          CUILI_ANDROID_STORE_PASSWORD: ${{ secrets.CUILI_ANDROID_STORE_PASSWORD }}
+          CUILI_ANDROID_KEY_ALIAS: ${{ secrets.CUILI_ANDROID_KEY_ALIAS }}
+          CUILI_ANDROID_KEY_PASSWORD: ${{ secrets.CUILI_ANDROID_KEY_PASSWORD }}
         run: |
-          set -euxo pipefail
-          test -s index.html
-          test -f android/gradlew
-          grep -q "CUI_LI_V27_TEA_PATCH" index.html
-          grep -q '"version": "2.8.1"' package.json
-          grep -q 'versionCode 20801' android/app/build.gradle
-          grep -q 'versionName "2.8.1"' android/app/build.gradle
+          set -euo pipefail
+          for secret_name in CUILI_ANDROID_KEYSTORE_B64 CUILI_ANDROID_STORE_PASSWORD CUILI_ANDROID_KEY_ALIAS CUILI_ANDROID_KEY_PASSWORD; do
+            if [ -z "${!secret_name:-}" ]; then
+              echo "::error::Missing required signing secret: $secret_name. Release will not fall back to debug signing."
+              exit 1
+            fi
+          done
       - uses: actions/setup-node@v6
         with:
           node-version: "22.16.0"
           registry-url: "https://registry.npmjs.org"
           cache: npm
+      - name: Verify release source and version
+        id: version
+        run: |
+          set -euo pipefail
+          test -s index.html
+          test -f android/gradlew
+          grep -q "CUI_LI_V27_TEA_PATCH" index.html
+          APP_VERSION="$(node -p "require('./package.json').version")"
+          [[ "$APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          grep -q 'versionCode 20801' android/app/build.gradle
+          grep -Fq "versionName \"$APP_VERSION\"" android/app/build.gradle
+          test -s "docs/RELEASE_v${APP_VERSION}.md"
+          printf 'version=%s\napk_name=Brew-Water-Calibrato-v%s.apk\nartifact_name=Brew-Water-Calibrato-v%s-release\n' \
+            "$APP_VERSION" "$APP_VERSION" "$APP_VERSION" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
+      - name: Restore and validate release keystore
+        env:
+          CUILI_ANDROID_KEYSTORE_B64: ${{ secrets.CUILI_ANDROID_KEYSTORE_B64 }}
+          CUILI_ANDROID_STORE_PASSWORD: ${{ secrets.CUILI_ANDROID_STORE_PASSWORD }}
+          CUILI_ANDROID_KEY_ALIAS: ${{ secrets.CUILI_ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          umask 077
+          KEYSTORE_PATH="$RUNNER_TEMP/cuili-android-release.p12"
+          printf '%s' "$CUILI_ANDROID_KEYSTORE_B64" | base64 --decode > "$KEYSTORE_PATH"
+          test -s "$KEYSTORE_PATH"
+          keytool -list -keystore "$KEYSTORE_PATH" -storetype PKCS12 \
+            -storepass:env CUILI_ANDROID_STORE_PASSWORD -alias "$CUILI_ANDROID_KEY_ALIAS"
+          printf 'CUILI_ANDROID_KEYSTORE_PATH=%s\n' "$KEYSTORE_PATH" >> "$GITHUB_ENV"
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v6
         with:
@@ -57,7 +99,7 @@ jobs:
           npm_config_audit: "false"
           npm_config_fund: "false"
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           npm config set registry https://registry.npmjs.org/
           for attempt in 1 2 3; do
             npm ci --no-audit --no-fund --prefer-online && break
@@ -66,35 +108,112 @@ jobs:
           done
       - name: Prepare and sync web assets
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           npm run check
           npm run prepare:web
           npx --no-install cap sync android
       - name: Install Android SDK 36
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
           sdkmanager --sdk_root="$ANDROID_SDK_ROOT" \
             "platform-tools" \
             "platforms;android-36" \
             "build-tools;36.0.0"
-      - name: Build debug APK
+      - name: Build signed release APK
         working-directory: android
+        env:
+          CUILI_ANDROID_STORE_PASSWORD: ${{ secrets.CUILI_ANDROID_STORE_PASSWORD }}
+          CUILI_ANDROID_KEY_ALIAS: ${{ secrets.CUILI_ANDROID_KEY_ALIAS }}
+          CUILI_ANDROID_KEY_PASSWORD: ${{ secrets.CUILI_ANDROID_KEY_PASSWORD }}
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           sed -i 's/\r$//' gradlew
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
-      - name: Prepare artifact
+          ./gradlew assembleRelease --no-daemon --stacktrace
+      - name: Verify APK signature and packaged web assets
+        env:
+          APK_NAME: ${{ steps.version.outputs.apk_name }}
+          APP_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk dist/Brew-Water-Calibrato-v2.8.1-debug.apk
-          sha256sum dist/Brew-Water-Calibrato-v2.8.1-debug.apk > dist/SHA256SUMS.txt
-          cp TEA_WATER_AUDIT_v2.7.md dist/
+          APK_PATH="dist/$APK_NAME"
+          cp android/app/build/outputs/apk/release/app-release.apk "$APK_PATH"
+          "$ANDROID_SDK_ROOT/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK_PATH" | tee dist/SIGNING-CERTIFICATE.txt
+          grep -Fiq 'certificate SHA-256 digest: 207665e48211537e8577578fcabc57d418eed218a25f908a257c36b81fd36cc7' dist/SIGNING-CERTIFICATE.txt
+          "$ANDROID_SDK_ROOT/build-tools/36.0.0/aapt" dump badging "$APK_PATH" > dist/APK-METADATA.txt
+          grep -Fq "package: name='com.zjcrop.brewwater' versionCode='20801' versionName='$APP_VERSION'" dist/APK-METADATA.txt
+          APK_PATH="$APK_PATH" python3 - <<'PY'
+          import os
+          import zipfile
+          with zipfile.ZipFile(os.environ["APK_PATH"]) as apk:
+              html = apk.read("assets/public/index.html").decode("utf-8")
+              assert "声明" in html, "Packaged homepage statement button is missing"
+              assert 'viewBox="0 0 945 1792"' in html, "Packaged homepage crop is outdated"
+              for path in ("assets/public/core/thermal-water.mjs", "assets/public/core/ui-engine.mjs", "assets/public/core/water-export.mjs"):
+                  assert apk.getinfo(path).file_size > 0, f"Missing packaged core: {path}"
+          print("Packaged homepage and calculation modules verified.")
+          PY
+          (cd dist && sha256sum "$APK_NAME" > SHA256SUMS.txt)
       - uses: actions/upload-artifact@v7
         with:
-          name: Brew-Water-Calibrato-v2.8.1-debug
+          name: ${{ steps.version.outputs.artifact_name }}
           path: dist/
           if-no-files-found: error
           retention-days: 30
+      - name: Remove temporary signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/cuili-android-release.p12"
+
+  publish-release:
+    name: Publish verified APK
+    needs: build-apk
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.build-apk.outputs.artifact_name }}
+          path: dist
+      - name: Create draft, upload verified assets, then publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APP_VERSION: ${{ needs.build-apk.outputs.version }}
+          APK_NAME: ${{ needs.build-apk.outputs.apk_name }}
+        run: |
+          set -euo pipefail
+          RELEASE_TAG="v$APP_VERSION"
+          RELEASE_NOTES="docs/RELEASE_v${APP_VERSION}.md"
+          test -s "dist/$APK_NAME"
+          test -s dist/SHA256SUMS.txt
+          test -s "$RELEASE_NOTES"
+          (cd dist && sha256sum --check SHA256SUMS.txt)
+          if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            TAG_SHA="$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
+            if [ "$TAG_SHA" != "$GITHUB_SHA" ]; then
+              echo "::error::$RELEASE_TAG already points to $TAG_SHA; refusing to move a release tag to $GITHUB_SHA."
+              exit 1
+            fi
+          fi
+          RELEASE_STATE="$(gh release list --limit 100 --json tagName,isDraft --jq ".[] | select(.tagName == \"$RELEASE_TAG\") | if .isDraft then \"draft\" else \"published\" end")"
+          if [ "$RELEASE_STATE" = "published" ]; then
+            echo "::error::$RELEASE_TAG is already published; refusing to replace its assets."
+            exit 1
+          fi
+          if [ "$RELEASE_STATE" = "draft" ]; then
+            gh release edit "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
+              --title "萃离 $APP_VERSION" --notes-file "$RELEASE_NOTES"
+          else
+            gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
+              --title "萃离 $APP_VERSION" --notes-file "$RELEASE_NOTES"
+          fi
+          gh release upload "$RELEASE_TAG" "dist/$APK_NAME" dist/SHA256SUMS.txt dist/SIGNING-CERTIFICATE.txt --clobber
+          gh release edit "$RELEASE_TAG" --draft=false --latest
+          gh release view "$RELEASE_TAG" --json url --jq .url >> "$GITHUB_STEP_SUMMARY"

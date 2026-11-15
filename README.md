@@ -23,7 +23,7 @@
 
 ## 发布
 
-GitHub Pages与Android工作流均会校验共享核心。Android工作流版本为2.8.1；只在实际构建成功后提供APK，不将网页验证等同设备测试。仓库本地变更不会自动更新已发布网站或用户手机。
+GitHub Pages与Android工作流均会校验共享核心。Android工作流构建2.8.1正式签名APK，验证签名、包内网页与核心文件后发布到GitHub Releases。网页部署与APK发布均由main分支工作流完成，不将代码验证等同于实液、杯测或真机测试。
 
 ## 计算边界
 
@@ -53,3 +53,13 @@ Brew-Water-Calibrato 是水质与复矿数据提供方。跨项目传递的业�
 本项目负责水质测量、复矿计算、风险评估及证据边界，不把内部配方模型或数据库表直接当成跨项目接口。不得用 TDS 或 HCO₃⁻ 静默推导 pH，也不得声称母粉配方消除源水中的游离氯或铁。
 
 只允许新增字段；禁止复用字段改变含义。字段改名必须在适配层双读并规范化输出。任何浓度、体积或 pH 类型错误必须显式拒绝。
+
+## APP下载与更新
+
+- [下载萃离 Android 2.8.1 APK](https://github.com/zjcrop/Brew-Water-Calibrato/releases/download/v2.8.1/Brew-Water-Calibrato-v2.8.1.apk)
+- [版本更新说明与校验文件](https://github.com/zjcrop/Brew-Water-Calibrato/releases/tag/v2.8.1)
+- [在线使用网页版](https://zjcrop.github.io/Brew-Water-Calibrato/)
+
+本次更新包含统一计算引擎、微调实时联动、称量顺序与纯度/水合盐校验、亲水SiO₂名义剂量、单次加热记录、LuckyBean水记录导出，以及首页底部对齐、空白裁切和“声明”入口。
+
+本版开始使用固定发布证书。若旧调试版安装时提示签名不兼容，请先记录或备份旧版设置，再卸载旧版安装；后续正式版沿用同一证书。下载后可用Release中的SHA256SUMS.txt校验文件。
