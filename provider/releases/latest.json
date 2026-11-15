@@ -1,17 +1,17 @@
 {
   "provider": "brew-water-calibrato",
   "contract": "water-formulation/1.0",
-  "releaseId": "brew-water-1.0.20260805+app.2.7.0.src.5a3084bdf9ee",
-  "dataVersion": "1.0.20260805+app.2.7.0.src.5a3084bdf9ee",
+  "releaseId": "brew-water-1.0.20261115+app.2.8.0.src.2085b2fcd614",
+  "dataVersion": "1.0.20261115+app.2.8.0.src.2085b2fcd614",
   "schemaVersion": "1.0",
-  "generatedAt": "2026-08-05T18:01:30+08:00",
+  "generatedAt": "2026-11-15T19:59:51+08:00",
   "status": "stable",
   "appendOnly": false,
   "source": {
     "repository": "zjcrop/Brew-Water-Calibrato",
     "ref": "main",
     "path": "index.html",
-    "commit": "5a3084bdf9eee21ef12f99c423df1343da1f4cbc"
+    "commit": "2085b2fcd61416efbb567c61ee5b4f8fcd454c1c"
   },
   "compatibility": {
     "minimumConsumerContract": "water-formulation/1.0",
@@ -19,26 +19,26 @@
     "previousDataVersion": null
   },
   "counts": {
-    "solutes": 19,
-    "profiles": 10,
+    "solutes": 21,
+    "profiles": 16,
     "ions": 11
   },
   "artifacts": [
     {
       "kind": "catalog",
-      "path": "data/water-chemistry-data-1.0.20260805+app.2.7.0.src.5a3084bdf9ee.json",
-      "url": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/data/water-chemistry-data-1.0.20260805+app.2.7.0.src.5a3084bdf9ee.json",
+      "path": "data/water-chemistry-data-1.0.20261115+app.2.8.0.src.2085b2fcd614.json",
+      "url": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/data/water-chemistry-data-1.0.20261115+app.2.8.0.src.2085b2fcd614.json",
       "mediaType": "application/json",
-      "bytes": 13333,
-      "sha256": "fd3bfc20d8904ce9f34e6764cd1e326bc97cf0064e2d9de304e0361adf9f45fd"
+      "bytes": 29792,
+      "sha256": "f0f8ac2d6d351988f08046d4bddd36af7a14a2114ed6757393fddf7ca104094e"
     },
     {
       "kind": "module",
-      "path": "modules/water-engine-1.0.0.mjs",
-      "url": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/modules/water-engine-1.0.0.mjs",
+      "path": "modules/water-engine-1.1.0.mjs",
+      "url": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/modules/water-engine-1.1.0.mjs",
       "mediaType": "text/javascript",
-      "bytes": 11520,
-      "sha256": "82697183b19dce64d95434cf845b186b00cf9467d44805919507750594137e3f"
+      "bytes": 17235,
+      "sha256": "5d3a3bde147456b5607d509a071ddc61298b3562ea3b96168c6164031173f58c"
     }
   ],
   "warnings": [
@@ -47,9 +47,9 @@
     "Complete dissolution and no precipitation are explicit idealizations; low-solubility salts require experimental validation."
   ],
   "metadata": {
-    "sourceAppVersion": "2.7.0",
-    "sourceRevision": "5a3084bdf9ee",
-    "deterministicEngineVersion": "1.0.0",
+    "sourceAppVersion": "2.8.0",
+    "sourceRevision": "2085b2fcd614",
+    "deterministicEngineVersion": "1.1.0",
     "dataSource": "constants-extracted-from-standalone-app-at-build-time"
   }
 }
