@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>萃离｜咖啡与茶冲泡调水 配方2.7版</title>
+<title>萃离｜咖啡与茶冲泡调水 配方2.8版</title>
 <link rel="icon" type="image/png" href="assets/app-icon.png">
 <style>
 :root{
@@ -352,6 +352,7 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
 .tea-mode-note{margin-top:8px;color:#9fb0b8;font-size:11px;line-height:1.6}
 @media(max-width:420px){.tea-water-grid{grid-template-columns:1fr}.tea-spec-grid{grid-template-columns:1fr 1fr}}
 
+.engine-status{margin:12px 0;padding:13px 15px;border:1px solid #365548;background:#11221d;border-radius:16px;color:#d9e8df;font-size:13px}.engine-status span{display:block;font-size:12px;color:#abbdb3;margin-top:4px}.engine-status.review{border-color:#806133;background:#292114}.engine-status.invalid{border-color:#a54f4f;background:#351b1b;color:#ffd1d1}.measure-settings{margin-top:14px;border-top:1px solid #2b3540;padding-top:10px}.measure-settings summary{cursor:pointer;font-size:13px;color:#bbc6d0}.measure-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}.measure-grid label{display:block;font-size:12px;color:#b9c6d0}.material-assay{padding-top:10px}.material-assay label{display:flex;gap:8px;align-items:center;font-size:12px}.material-assay input{background:#0b1017;border:1px solid #405163;color:white;border-radius:7px;padding:6px;width:84px}.recipe-step{display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;background:#303d35;color:#d9eadb;border-radius:50%;font-size:12px;margin-right:7px}.weighing-note{padding:12px 14px;border:1px solid #354135;border-radius:14px;background:#142018;color:#c1d1c4;font-size:12px;line-height:1.8;margin-bottom:12px}.recipe-name small{display:block;font-size:11px;color:#b4c2b6;margin-top:4px}
 </style>
 </head>
 <body class="home-screen">
@@ -376,8 +377,8 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
     <div>
       <h4>版本说明</h4>
       <div class="about-badges">
-        <span class="about-badge">版本 2.7</span>
-        <span class="about-badge">咖啡与茶双模式、茶类源水评估版</span>
+        <span class="about-badge">版本 2.8</span>
+        <span class="about-badge">统一离子核算与称量复核</span>
       </div>
       <p>本版使用完整比例水滴图作为 APP 图标，保留新版启动主页设计图；关于页增加返回按钮，风险页在无中高风险时提供返回方案物质用量区域的快捷按钮。</p>
     </div>
@@ -434,6 +435,7 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
         <input id="targetAmount" class="select-like" type="number" min="0.1" step="0.1" value="50" oninput="customTargetChanged()">
       </div>
       <div class="helper" id="targetHelp" style="margin-top:8px">预混合母粉默认目标总量为50g。</div>
+      <details class="measure-settings"><summary>称量与仪表设置</summary><div class="measure-grid"><label>天平分辨率<select id="scaleResolution" class="select-like" onchange="updateAll()"><option value="0.001">0.001 g</option><option value="0.01">0.01 g</option><option value="0.1">0.1 g</option></select></label><label>TDS笔换算系数<input id="meterFactor" class="select-like" type="number" min="0.4" max="0.9" step="0.01" value="0.50" onchange="updateAll()"></label></div><div class="helper" style="margin-top:8px">基础水按接近零矿化的RO水；系数请查仪表说明。显示用量取整后会重新核算离子。</div></details>
     </div>
 
     <div class="input-label">饮品类型</div>
@@ -449,9 +451,9 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
     <div id="teaWaterPanel" class="tea-water-panel hidden">
       <h4>茶类源水实测输入</h4>
       <div class="tea-water-grid">
-        <div class="tea-water-field"><label for="teaMeasuredPh">源水pH（实测）</label><input id="teaMeasuredPh" type="number" min="5.5" max="9" step="0.05" value="7.00" oninput="teaSourceChanged()"></div>
-        <div class="tea-water-field"><label for="teaFreeChlorine">游离氯 mg/L</label><input id="teaFreeChlorine" type="number" min="0" max="5" step="0.01" value="0" oninput="teaSourceChanged()"></div>
-        <div class="tea-water-field"><label for="teaIron">铁离子 mg/L</label><input id="teaIron" type="number" min="0" max="5" step="0.01" value="0" oninput="teaSourceChanged()"></div>
+        <div class="tea-water-field"><label for="teaMeasuredPh">源水pH（实测）</label><input id="teaMeasuredPh" type="number" min="0" max="14" step="0.05" placeholder="未测可留空" oninput="teaSourceChanged()"></div>
+        <div class="tea-water-field"><label for="teaFreeChlorine">游离氯 mg/L</label><input id="teaFreeChlorine" type="number" min="0" max="5" step="0.01" placeholder="未测可留空" oninput="teaSourceChanged()"></div>
+        <div class="tea-water-field"><label for="teaIron">铁离子 mg/L</label><input id="teaIron" type="number" min="0" max="5" step="0.01" placeholder="未测可留空" oninput="teaSourceChanged()"></div>
       </div>
       <div class="tea-source-warning">pH不能由TDS或HCO₃⁻可靠反推。游离氯和铁来自源水，不属于母粉生成的离子；出现风险时应处理或更换水源。</div>
       <button class="mini-btn" style="margin-top:9px" onclick="openModal('teaWater')">茶类水质说明</button>
@@ -535,13 +537,14 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
 <section id="page-plan" class="page">
   <div class="card">
     <div class="section-title">🧪 方案结果</div>
+    <div id="engineStatus" class="engine-status" role="status">正在载入计算引擎…</div>
     <div id="mixSummary" class="orange-big">目标总量 50.0g</div>
 
     <div class="v2-stats">
       <div class="v2-stat primary"><small>方案</small><div id="v2MainId" class="v2-big">计算</div><div id="v2MainName" class="v2-sub">扩展离子配方</div></div>
       <div class="v2-stat"><small>每5L添加</small><div id="dose5L" class="v2-big">0.00g</div><div id="dose5LRange" class="operation-range">允许称量范围 0.00–0.00g / 5L</div><div id="dose5LExact" class="precision-note">备注：模型精确值 0.000g / 5L</div></div>
       <div class="v2-stat"><small>每1L添加</small><div id="dose1L" class="v2-big">0.000g</div><div class="v2-sub">等比例参考值</div></div>
-      <div class="v2-stat"><small>电导等效TDS</small><div id="tdsEffective" class="v2-big">0 ± 0ppm</div><div id="tdsOperationalRange" class="operation-range">操作控制带 0–0ppm</div><div id="tdsExactNote" class="precision-note">备注：模型精确值 0.0ppm</div><span id="tdsBadge" class="tds-state tds-ok">合理</span></div>
+      <div class="v2-stat"><small>TDS笔参考读数</small><div id="tdsEffective" class="v2-big">—</div><div id="tdsOperationalRange" class="operation-range"></div><div id="tdsExactNote" class="precision-note">需实测校准</div><span id="tdsBadge" class="tds-state tds-mid">参考</span></div>
     </div>
 
     <div id="teaPlanGuidance" class="tea-plan-card hidden"></div>
@@ -549,25 +552,25 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
     <div class="fold-card" id="foldTds">
       <button class="fold-head" onclick="toggleFold('foldTds')"><span>📊 预期TDS与用量说明</span><span class="fold-arrow">▾</span></button>
       <div class="fold-body"><div class="tds-panel">
-        <div class="info-row"><div class="info-box"><small>质量折算TDS</small><b id="tdsTheory">0mg/L</b><span class="sub">按可溶添加质量折算</span></div><div class="info-box"><small>预设目标区间</small><b id="tdsTargetRange">0–0</b><span class="sub">按当前预设判断</span></div></div>
+        <div class="info-row"><div class="info-box"><small>计算离子质量之和</small><b id="tdsTheory">—</b><span class="sub">不含结晶水，非电导TDS</span></div><div class="info-box"><small>经验参考区间</small><b id="tdsTargetRange">—</b><span class="sub">用于杯测对照</span></div></div>
         <div id="tdsText" class="helper" style="margin-top:10px"></div><div id="silicaSummary" class="note-box hidden"></div>
         <div style="margin-top:10px"><button class="mini-btn" onclick="openModal('tds')">TDS说明</button></div>
       </div></div>
     </div>
 
     <div class="fold-card" id="foldIon">
-      <button class="fold-head" onclick="toggleFold('foldIon')"><span>🧪 离子与结合负载指标</span><span class="fold-arrow">▾</span></button>
+      <button class="fold-head" onclick="toggleFold('foldIon')"><span>🧪 离子与目标核对</span><span class="fold-arrow">▾</span></button>
       <div class="fold-body"><div class="v2-info">
         <div class="v2-egrid">
           <div class="v2-ebox"><small>Ca²⁺总量</small><b id="v2CaMgL">0.0mg/L</b><div class="v2-bar"><span id="v2BarCa"></span></div></div>
           <div class="v2-ebox"><small>Mg²⁺总量</small><b id="v2MgMgL">0.0mg/L</b><div class="v2-bar"><span id="v2BarMg"></span></div></div>
-          <div class="v2-ebox"><small>碱度 as HCO₃⁻</small><b id="v2Hco3MgL">0.0mg/L</b><div class="v2-bar"><span id="v2BarHco3"></span></div></div>
+          <div class="v2-ebox"><small>实际HCO₃⁻</small><b id="v2Hco3MgL">—</b><div class="v2-bar"><span id="v2BarHco3"></span></div></div>
           <div class="v2-ebox"><small>Na占Na+K</small><b id="v2NaShare">0%</b><div class="v2-bar"><span id="v2BarNa"></span></div></div>
         </div>
         <div class="v2-egrid" style="margin-top:10px">
-          <div class="v2-ebox"><small>二价离子结合负载率</small><b id="v2BoundRate">0%</b><div class="v2-bar"><span id="v2BarBound"></span></div></div>
-          <div class="v2-ebox"><small>二价离子空载率</small><b id="v2FreeRate">0%</b><div class="v2-bar"><span id="v2BarFree"></span></div></div>
-          <div class="v2-ebox"><small>潜在沉淀负载率</small><b id="v2PrecipRate">0%</b><div class="v2-bar"><span id="v2BarPrecip"></span></div></div>
+          <div class="v2-ebox"><small>碳酸盐碱度 as CaCO₃</small><b id="v2BoundRate">—</b></div>
+          <div class="v2-ebox"><small>HCO₃⁻目标偏差</small><b id="v2FreeRate">—</b></div>
+          <div class="v2-ebox"><small>电荷核对</small><b id="v2PrecipRate">—</b></div>
           <div class="v2-ebox"><small>综合硬度 as CaCO₃</small><b id="v2Hardness">0.0mg/L</b><div class="v2-bar"><span id="v2BarHard"></span></div></div>
         </div>
         <div id="v2ReactionTags" class="v2-tags"></div>
@@ -583,7 +586,7 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
     </div>
 
     <div class="fold-card" id="foldAnion">
-      <button class="fold-head" onclick="toggleFold('foldAnion')"><span>⚗️ 阴离子负载、离子结合与反应评估</span><span class="fold-arrow">▾</span></button>
+      <button class="fold-head" onclick="toggleFold('foldAnion')"><span>⚗️ 完整离子表与计算边界</span><span class="fold-arrow">▾</span></button>
       <div class="fold-body">
         <div id="ionExplain"></div>
         <div id="riskExplain" style="margin-top:10px"></div>
@@ -593,6 +596,7 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
 
     <div id="recipeSection" class="recipe-section-anchor">
       <div class="section-title" style="margin-top:18px">📋 各种物质用量</div>
+      <div class="weighing-note"><label for="tweakModeSelect">微调方式</label><select id="tweakModeSelect" class="select-like" onchange="setDoseTweakMode(this.value)"><option value="linked">固定总量联动 · 其他盐按比例让量</option><option value="independent">独立调量 · 只改变当前盐</option></select><button class="mini-btn" style="margin-top:8px" onclick="resetDoseTweaks()">重置微调</button><div id="tweakFeedback" role="status" style="margin-top:8px">增加一种盐时，其他盐同步缩减；各项变化与警示实时核算。</div></div>
       <div id="recipeList" class="recipe-list"></div>
       <div style="margin-top:14px"><button class="secondary-btn" onclick="goPage('risk')">方案风险分析</button></div>
     </div>
@@ -605,7 +609,7 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
     <div id="riskChips"></div>
     <div id="riskItems" class="risk-list"></div>
     <div id="optimAdvice" class="optim-note"></div>
-    <div id="optimAction" class="hidden" style="margin-top:12px"><button class="primary-btn" onclick="optimizeRecipe()">一键优化并返回方案页</button></div>
+    <div id="optimAction" class="hidden" style="margin-top:12px"><button class="primary-btn" onclick="optimizeRecipe()">恢复基础选择并重新核算</button></div>
     <div id="riskReturnAction" class="hidden" style="margin-top:12px"><button class="secondary-btn" onclick="returnToPlanRecipe()">返回</button></div>
     <div id="optimChange" class="optim-change hidden"></div>
   </div>
@@ -624,25 +628,27 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
 
 <script>
 const MAT=[
-{id:"cacl2",name:"CaCl₂｜无水氯化钙",group:"钙源",tier:"推荐",role:"钙结构 / 杯体",mw:110.98,purity:0.95,cation:"Ca",catN:1,anion:"Cl",anN:2,alkEq:0,recommended:true,default:true,tip:"补充 Ca²⁺ 与 Cl⁻；高时硬、咸、苦、干；吸湿性强。"},
-{id:"calac",name:"乳酸钙五水合物",group:"钙源",tier:"推荐",role:"柔和钙 / 圆润",mw:308.30,purity:0.99,cation:"Ca",catN:1,anion:"Lactate",anN:2,alkEq:0,recommended:true,default:true,tip:"补充 Ca²⁺ 与乳酸根；较柔和，过高可能粉感、钝感。"},
-{id:"caco3",name:"CaCO₃｜碳酸钙",group:"钙源",tier:"理论",role:"钙 + 碳酸根",mw:100.09,purity:0.99,cation:"Ca",catN:1,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 Ca²⁺ 与 CO₃²⁻；低溶解度，易白垩、浑浊、沉淀、水垢。"},
-{id:"cacit",name:"柠檬酸钙",group:"钙源",tier:"谨慎",role:"钙 + 柠檬酸络合",mw:570.49,purity:0.99,cation:"Ca",catN:3,anion:"Citrate",anN:2,alkEq:0.5,recommended:false,default:false,tip:"补充 Ca²⁺ 与柠檬酸根；会络合 Ca/Mg，改变结构和酸质。"},
-{id:"caglu",name:"葡萄糖酸钙",group:"钙源",tier:"谨慎",role:"柔和钙",mw:448.39,purity:0.99,cation:"Ca",catN:1,anion:"Gluconate",anN:2,alkEq:0,recommended:false,default:false,tip:"补充 Ca²⁺ 与葡萄糖酸根；较柔，但用量大时可能甜钝。"},
-{id:"mgso4",name:"MgSO₄｜无水硫酸镁",group:"镁源",tier:"推荐",role:"镁香气 / 明亮度",mw:120.37,purity:0.99,cation:"Mg",catN:1,anion:"SO4",anN:1,alkEq:0,recommended:true,default:true,tip:"补充 Mg²⁺ 与 SO₄²⁻；花果香与清晰度强，高时矿物、干涩。"},
-{id:"mglac",name:"乳酸镁二水合物",group:"镁源",tier:"推荐",role:"柔和镁",mw:238.44,purity:0.99,cation:"Mg",catN:1,anion:"Lactate",anN:2,alkEq:0,recommended:true,default:true,tip:"补充 Mg²⁺ 与乳酸根；比硫酸镁更柔，过高可能钝。"},
-{id:"mgco3",name:"MgCO₃｜碳酸镁",group:"镁源",tier:"理论",role:"镁 + 碳酸根",mw:84.31,purity:0.99,cation:"Mg",catN:1,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 Mg²⁺ 与 CO₃²⁻；低溶解度，易浑浊，不适合常规母粉。"},
-{id:"mgcl2",name:"MgCl₂·6H₂O｜六水氯化镁",group:"镁源",tier:"谨慎",role:"镁 + 氯根",mw:203.30,purity:0.99,cation:"Mg",catN:1,anion:"Cl",anN:2,alkEq:0,recommended:false,default:false,tip:"补充 Mg²⁺ 与 Cl⁻；溶解好，但高时苦咸、吸湿强。"},
-{id:"mgcit",name:"柠檬酸镁",group:"镁源",tier:"谨慎",role:"镁 + 柠檬酸络合",mw:451.12,purity:0.99,cation:"Mg",catN:3,anion:"Citrate",anN:2,alkEq:0.5,recommended:false,default:false,tip:"补充 Mg²⁺ 与柠檬酸根；可柔化，但可能削弱清晰度。"},
-{id:"mgglu",name:"葡萄糖酸镁",group:"镁源",tier:"谨慎",role:"柔和镁",mw:450.65,purity:0.99,cation:"Mg",catN:1,anion:"Gluconate",anN:2,alkEq:0,recommended:false,default:false,tip:"补充 Mg²⁺ 与葡萄糖酸根；用量大，可能甜钝或药感。"},
-{id:"khco3",name:"KHCO₃｜碳酸氢钾",group:"缓冲 / 钾钠",tier:"推荐",role:"HCO₃⁻缓冲 + K",mw:100.115,purity:0.99,cation:"K",catN:1,anion:"HCO3",anN:1,alkEq:1,recommended:true,default:true,tip:"补充 K⁺ 与 HCO₃⁻；抑酸核心，高时钾盐苦涩、白垩感。"},
-{id:"nahco3",name:"NaHCO₃｜碳酸氢钠",group:"缓冲 / 钾钠",tier:"推荐",role:"HCO₃⁻缓冲 + Na",mw:84.006,purity:0.99,cation:"Na",catN:1,anion:"HCO3",anN:1,alkEq:1,recommended:true,default:true,tip:"补充 Na⁺ 与 HCO₃⁻；可降低钾盐压力并帮助抑苦，高时钠感 / 碱感。"},
-{id:"k2co3",name:"K₂CO₃｜碳酸钾",group:"缓冲 / 钾钠",tier:"理论",role:"强碱度 + K",mw:138.205,purity:0.99,cation:"K",catN:2,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 K⁺ 与 CO₃²⁻；碱性强，容易皂感 / 闷钝。"},
-{id:"na2co3",name:"Na₂CO₃｜碳酸钠",group:"缓冲 / 钾钠",tier:"理论",role:"强碱度 + Na",mw:105.99,purity:0.99,cation:"Na",catN:2,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 Na⁺ 与 CO₃²⁻；碱感明显，易破坏酸质。"},
-{id:"nacl",name:"NaCl｜氯化钠",group:"感知盐",tier:"谨慎",role:"Na⁺感知抑苦，非缓冲",mw:58.44,purity:0.99,cation:"Na",catN:1,anion:"Cl",anN:1,alkEq:0,recommended:false,default:false,tip:"补充 Na⁺ 与 Cl⁻；极微量可抑苦，高时咸味明显。"},
-{id:"kcl",name:"KCl｜氯化钾",group:"感知盐",tier:"谨慎",role:"K⁺矿物感，非缓冲",mw:74.55,purity:0.99,cation:"K",catN:1,anion:"Cl",anN:1,alkEq:0,recommended:false,default:false,tip:"补充 K⁺ 与 Cl⁻；高时苦、金属、药感。"},
-{id:"nacit",name:"柠檬酸钠",group:"络合 / 缓冲",tier:"谨慎",role:"柠檬酸络合 + Na",mw:294.10,purity:0.99,cation:"Na",catN:3,anion:"Citrate",anN:1,alkEq:1.5,recommended:false,default:false,tip:"补充 Na⁺ 与柠檬酸根；可柔化并络合 Ca/Mg，高时柠檬盐感。"},
-{id:"kcit",name:"柠檬酸钾",group:"络合 / 缓冲",tier:"谨慎",role:"柠檬酸络合 + K",mw:324.41,purity:0.99,cation:"K",catN:3,anion:"Citrate",anN:1,alkEq:1.5,recommended:false,default:false,tip:"补充 K⁺ 与柠檬酸根；可络合二价离子，高时钾盐苦涩。"}
+{id:"cacl2_2h2o",handlingOrder:40,moistureClass:"吸湿/潮解",name:"CaCl₂·2H₂O｜二水氯化钙",group:"钙源",tier:"谨慎",role:"钙源 / 明确水合物",mw:147.01,purity:0.99,cation:"Ca",catN:1,anion:"Cl",anN:2,alkEq:0,recommended:false,default:false,tip:"与无水氯化钙分开核算；按实际包装和COA选择，后称快封。"},
+{id:"mgso4_7h2o",handlingOrder:20,moistureClass:"防潮并核对结晶水",name:"MgSO₄·7H₂O｜七水硫酸镁",group:"镁源",tier:"谨慎",role:"镁源 / 明确水合物",mw:246.47,purity:0.99,cation:"Mg",catN:1,anion:"SO4",anN:1,alkEq:0,recommended:false,default:false,tip:"不是无水硫酸镁；按七水合物摩尔质量和批次纯度计算。"},
+{id:"cacl2",handlingOrder:40,moistureClass:"高吸湿/潮解",name:"CaCl₂｜无水氯化钙",group:"钙源",tier:"推荐",role:"钙结构 / 杯体",mw:110.98,purity:0.95,cation:"Ca",catN:1,anion:"Cl",anN:2,alkEq:0,recommended:true,default:true,tip:"补充 Ca²⁺ 与 Cl⁻；高时硬、咸、苦、干；吸湿性强。"},
+{id:"calac",handlingOrder:25,moistureClass:"吸湿/风化，核对包装",name:"乳酸钙五水合物",group:"钙源",tier:"推荐",role:"柔和钙 / 圆润",mw:308.30,purity:0.99,cation:"Ca",catN:1,anion:"Lactate",anN:2,alkEq:0,recommended:true,default:true,tip:"补充 Ca²⁺ 与乳酸根；较柔和，过高可能粉感、钝感。"},
+{id:"caco3",handlingOrder:10,moistureClass:"防潮；溶解性另核验",name:"CaCO₃｜碳酸钙",group:"钙源",tier:"理论",role:"钙 + 碳酸根",mw:100.09,purity:0.99,cation:"Ca",catN:1,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 Ca²⁺ 与 CO₃²⁻；低溶解度，易白垩、浑浊、沉淀、水垢。"},
+{id:"cacit",handlingOrder:20,moistureClass:"按COA/包装复核",name:"柠檬酸钙四水合物",group:"钙源",tier:"谨慎",role:"钙 + 柠檬酸络合",mw:570.49,purity:0.99,cation:"Ca",catN:3,anion:"Citrate",anN:2,alkEq:0.5,recommended:false,default:false,tip:"补充 Ca²⁺ 与柠檬酸根；会络合 Ca/Mg，改变结构和酸质。"},
+{id:"caglu",handlingOrder:20,moistureClass:"按COA/包装复核",name:"葡萄糖酸钙一水合物",group:"钙源",tier:"谨慎",role:"柔和钙",mw:448.39,purity:0.99,cation:"Ca",catN:1,anion:"Gluconate",anN:2,alkEq:0,recommended:false,default:false,tip:"补充 Ca²⁺ 与葡萄糖酸根；较柔，但用量大时可能甜钝。"},
+{id:"mgso4",handlingOrder:30,moistureClass:"吸湿，后称快封",name:"MgSO₄｜无水硫酸镁",group:"镁源",tier:"推荐",role:"镁香气 / 明亮度",mw:120.37,purity:0.99,cation:"Mg",catN:1,anion:"SO4",anN:1,alkEq:0,recommended:true,default:true,tip:"补充 Mg²⁺ 与 SO₄²⁻；花果香与清晰度强，高时矿物、干涩。"},
+{id:"mglac",handlingOrder:20,moistureClass:"按COA/包装复核",name:"乳酸镁二水合物",group:"镁源",tier:"推荐",role:"柔和镁",mw:238.47,purity:0.99,cation:"Mg",catN:1,anion:"Lactate",anN:2,alkEq:0,recommended:true,default:true,tip:"补充 Mg²⁺ 与乳酸根；比硫酸镁更柔，过高可能钝。"},
+{id:"mgco3",handlingOrder:10,moistureClass:"防潮；溶解性另核验",name:"MgCO₃｜碳酸镁",group:"镁源",tier:"理论",role:"镁 + 碳酸根",mw:84.31,purity:0.99,cation:"Mg",catN:1,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 Mg²⁺ 与 CO₃²⁻；低溶解度，易浑浊，不适合常规母粉。"},
+{id:"mgcl2",handlingOrder:40,moistureClass:"高吸湿/潮解",name:"MgCl₂·6H₂O｜六水氯化镁",group:"镁源",tier:"谨慎",role:"镁 + 氯根",mw:203.30,purity:0.99,cation:"Mg",catN:1,anion:"Cl",anN:2,alkEq:0,recommended:false,default:false,tip:"补充 Mg²⁺ 与 Cl⁻；溶解好，但高时苦咸、吸湿强。"},
+{id:"mgcit",handlingOrder:20,moistureClass:"按COA/包装复核",name:"无水柠檬酸镁",group:"镁源",tier:"谨慎",role:"镁 + 柠檬酸络合",mw:451.12,purity:0.99,cation:"Mg",catN:3,anion:"Citrate",anN:2,alkEq:0.5,recommended:false,default:false,tip:"补充 Mg²⁺ 与柠檬酸根；可柔化，但可能削弱清晰度。"},
+{id:"mgglu",handlingOrder:20,moistureClass:"按COA/包装复核",name:"葡萄糖酸镁二水合物",group:"镁源",tier:"谨慎",role:"柔和镁",mw:450.65,purity:0.99,cation:"Mg",catN:1,anion:"Gluconate",anN:2,alkEq:0,recommended:false,default:false,tip:"补充 Mg²⁺ 与葡萄糖酸根；用量大，可能甜钝或药感。"},
+{id:"khco3",handlingOrder:10,moistureClass:"防潮，相对先称",name:"KHCO₃｜碳酸氢钾",group:"缓冲 / 钾钠",tier:"推荐",role:"HCO₃⁻缓冲 + K",mw:100.115,purity:0.99,cation:"K",catN:1,anion:"HCO3",anN:1,alkEq:1,recommended:true,default:true,tip:"补充 K⁺ 与 HCO₃⁻；抑酸核心，高时钾盐苦涩、白垩感。"},
+{id:"nahco3",handlingOrder:10,moistureClass:"防潮，相对先称",name:"NaHCO₃｜碳酸氢钠",group:"缓冲 / 钾钠",tier:"推荐",role:"HCO₃⁻缓冲 + Na",mw:84.006,purity:0.99,cation:"Na",catN:1,anion:"HCO3",anN:1,alkEq:1,recommended:true,default:true,tip:"补充 Na⁺ 与 HCO₃⁻；可降低钾盐压力并帮助抑苦，高时钠感 / 碱感。"},
+{id:"k2co3",handlingOrder:40,moistureClass:"强吸湿，核对包装",name:"K₂CO₃｜碳酸钾",group:"缓冲 / 钾钠",tier:"理论",role:"强碱度 + K",mw:138.205,purity:0.99,cation:"K",catN:2,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 K⁺ 与 CO₃²⁻；碱性强，容易皂感 / 闷钝。"},
+{id:"na2co3",handlingOrder:30,moistureClass:"吸湿，核对包装",name:"Na₂CO₃｜碳酸钠",group:"缓冲 / 钾钠",tier:"理论",role:"强碱度 + Na",mw:105.99,purity:0.99,cation:"Na",catN:2,anion:"CO3",anN:1,alkEq:2,recommended:false,default:false,tip:"补充 Na⁺ 与 CO₃²⁻；碱感明显，易破坏酸质。"},
+{id:"nacl",handlingOrder:10,moistureClass:"防潮",name:"NaCl｜氯化钠",group:"感知盐",tier:"谨慎",role:"Na⁺感知抑苦，非缓冲",mw:58.44,purity:0.99,cation:"Na",catN:1,anion:"Cl",anN:1,alkEq:0,recommended:false,default:false,tip:"补充 Na⁺ 与 Cl⁻；极微量可抑苦，高时咸味明显。"},
+{id:"kcl",handlingOrder:10,moistureClass:"防潮",name:"KCl｜氯化钾",group:"感知盐",tier:"谨慎",role:"K⁺矿物感，非缓冲",mw:74.55,purity:0.99,cation:"K",catN:1,anion:"Cl",anN:1,alkEq:0,recommended:false,default:false,tip:"补充 K⁺ 与 Cl⁻；高时苦、金属、药感。"},
+{id:"nacit",handlingOrder:20,moistureClass:"按COA/包装复核",name:"柠檬酸钠二水合物",group:"络合 / 缓冲",tier:"谨慎",role:"柠檬酸络合 + Na",mw:294.10,purity:0.99,cation:"Na",catN:3,anion:"Citrate",anN:1,alkEq:1.5,recommended:false,default:false,tip:"补充 Na⁺ 与柠檬酸根；可柔化并络合 Ca/Mg，高时柠檬盐感。"},
+{id:"kcit",handlingOrder:20,moistureClass:"按COA/包装复核",name:"柠檬酸钾一水合物",group:"络合 / 缓冲",tier:"谨慎",role:"柠檬酸络合 + K",mw:324.41,purity:0.99,cation:"K",catN:3,anion:"Citrate",anN:1,alkEq:1.5,recommended:false,default:false,tip:"补充 K⁺ 与柠檬酸根；可络合二价离子，高时钾盐苦涩。"}
 ];
 const IONM={Ca:40.078,Mg:24.305,Na:22.990,K:39.098,HCO3:61.017,CO3:60.008,Cl:35.45,SO4:96.06,Lactate:89.07,Citrate:189.10,Gluconate:195.17};
 const PROFILE={
@@ -1625,7 +1631,251 @@ const cuiliInitV261Tea=init;
 init=function(){cuiliInitV261Tea();beverageMode=cuiliIsTea()?'tea':'coffee';cuiliUpdateModeLabels();};
 
 
-init();
+/* CUI_LI_V28_UNIFIED_ENGINE: calculation and displayed doses share the pure core. */
+let cuiliDoseTweakMode='linked',cuiliDraggingSalt=null,cuiliBudgetNotice='';
+const cuiliManualDosesG={};
+function setManualDose(id,text){
+  if(text.trim()==='')delete cuiliManualDosesG[id];
+  else cuiliManualDosesG[id]=Number(text);
+  $('tweakFeedback').textContent='手动试验投加按每5L计量，已重新核算全部离子；不会将柠檬酸盐当作等量碳酸氢根。';
+  MAT.forEach(m=>tweak[m.id]=0);updateAll();
+}
+function setDoseTweakMode(mode){cuiliDoseTweakMode=mode==='independent'?'independent':'linked';MAT.forEach(m=>tweak[m.id]=0);$('tweakFeedback').textContent='已切换并清除先前微调：'+(mode==='linked'?'固定总量，改变一盐时其余盐按比例让量。':'独立调量，只改变当前盐。');updateAll();}
+setTweak=function(id,value){
+  const rawPercentage=Number(value);if(!lastBase||!lastBase[id]||!Number.isFinite(rawPercentage))return;
+  const upper=cuiliDoseTweakMode==='linked'?(Object.values(lastBase).reduce((a,b)=>a+b,0)/lastBase[id]-1)*100:200;
+  const percentage=clamp(rawPercentage,-100,Math.max(0,upper));
+  if(cuiliDoseTweakMode==='linked'){
+    const current=Object.fromEntries(Object.entries(lastBase).map(([key,g])=>[key,g*(1+(tweak[key]||0)/100)]));
+    const edit=globalThis.CuiLiUiEngine.applyLinkedDoseEdit({baseDosesG:lastBase,currentDosesG:current,id,percentage});
+    for(const [key,g]of Object.entries(lastBase))tweak[key]=g>0?(edit.dosesG[key]/g-1)*100:0;
+    $('tweakFeedback').textContent=(edit.limited||percentage!==rawPercentage?'已到固定总量可分配上限。':'')+'已联动：'+Object.entries(tweak).filter(([,v])=>Math.abs(v)>.05).map(([key,v])=>`${MAT.find(m=>m.id===key).name} ${v>=0?'+':''}${fmt(v,1)}%`).join('；');
+  }else{tweak[id]=percentage;$('tweakFeedback').textContent='仅调整 '+MAT.find(m=>m.id===id).name+(outputMode==='premix'?' 每5L投加目标；母粉批量按新配比重算。':'；其他盐克数保持不变。');}
+  optimizationMessage='';updateAll();
+};
+function nudgeSalt(id,delta){setTweak(id,(tweak[id]||0)+delta);}
+function resetDoseTweaks(){MAT.forEach(m=>tweak[m.id]=0);$('tweakFeedback').textContent='已清除所有单盐微调，恢复当前基础配方。';updateAll();}
+budgetInput=function(id){
+  const others=['floral','sweet','acid','bitter'].filter(key=>key!==id),value=clamp(Number($(id).value),0,100);
+  $(id).value=value;const sum=others.reduce((n,key)=>n+Number($(key).value),0),remaining=200-value;
+  if(sum>remaining){let assigned=0;others.forEach((key,index)=>{const number=index===others.length-1?remaining-assigned:Math.floor(Number($(key).value)*remaining/sum);$(key).value=number;assigned+=number;});cuiliBudgetNotice='预算200：其他风味选项已按比例让出空间。';}
+  else cuiliBudgetNotice='当前设置已实时重算；滑块控制经验目标，不是风味含量百分比。';
+  updateAll();
+};
+function nudgeFlavor(id,delta){$(id).value=clamp(Number($(id).value)+delta,0,100);budgetInput(id);}
+const cuiliSelectBeanBefore28=selectBean;
+selectBean=function(id){MAT.forEach(m=>tweak[m.id]=0);Object.keys(cuiliManualDosesG).forEach(key=>delete cuiliManualDosesG[key]);cuiliSelectBeanBefore28(id);};
+const cuiliSetSaltSystemBefore28=setSaltSystem;
+setSaltSystem=function(system){MAT.forEach(m=>{tweak[m.id]=0;selected[m.id]=m.default;});Object.keys(cuiliManualDosesG).forEach(key=>delete cuiliManualDosesG[key]);cuiliSetSaltSystemBefore28(system);};
+function cuiliNumberInput(id,label,{min=0,max=Infinity}={}){
+  const value=$(id).value;
+  if(value.trim()==='')throw new Error(label+'不能为空');
+  const number=Number(value);
+  if(!Number.isFinite(number)||number<min||number>max)throw new Error(label+'超出可用范围');
+  return number;
+}
+targetDisplay=function(){return cuiliNumberInput('targetAmount',outputMode==='premix'?'母粉总量':'配方水量',{min:.1,max:100000});};
+normalizeTweaked=function(base){return Object.fromEntries(Object.entries(base).map(([id,g])=>[id,g*(1+(tweak[id]||0)/100)]));};
+renderBeans=function(){
+  $('beanSelect').innerHTML=Object.entries(PROFILE).filter(([,p])=>!!(p.category==='tea')===(beverageMode==='tea')).map(([id,p])=>`<option value="${id}" ${selectedBean===id?'selected':''}>${p.name}</option>`).join('');
+  $('beanNote').innerHTML=`<strong>${PROFILE[selectedBean].name}</strong><br>这是依据已有研究与使用经验设置的起点，未代表当前豆批或茶样的化验结果。请固定冲煮条件后比较风味。`;
+};
+function cuiliSetPurity(id,value){
+  const m=MAT.find(item=>item.id===id);if(!m)return;
+  const n=Number(value);m.purity=value.trim()!==''&&Number.isFinite(n)?n/100:NaN;updateAll();
+}
+const cuiliRenderMatsBefore28=renderMats;
+renderMats=function(){
+  cuiliRenderMatsBefore28();
+  document.querySelectorAll('.mat-item').forEach(el=>{
+    const checkbox=el.querySelector('input[type="checkbox"]');
+    const id=checkbox&&checkbox.getAttribute('onchange')?.match(/toggleMat\('([^']+)'/)[1];
+    const m=MAT.find(item=>item.id===id),detail=el.querySelector('.mat-detail');
+    if(m&&detail)detail.insertAdjacentHTML('beforeend',`<div class="material-assay" onclick="event.stopPropagation()"><label>本批纯度 % <input aria-label="${m.name}纯度" type="number" min="1" max="100" step="0.1" value="${Number.isFinite(m.purity)?+(m.purity*100).toFixed(2):''}" onchange="cuiliSetPurity('${m.id}',this.value)"></label><small>摩尔质量 ${m.mw} g/mol；请与包装水合物和COA一致。</small><label style="margin-top:9px">试验投加 g/5L <input aria-label="${m.name}手动投加" type="number" min="0" max="10" step="0.001" placeholder="自动" value="${Object.hasOwn(cuiliManualDosesG,m.id)?cuiliManualDosesG[m.id]:''}" onchange="setManualDose('${m.id}',this.value)"></label><small>仅用于当前目标未自动使用的试验盐；常规盐请用局部微调。留空回到自动量，切换预设/体系会清除试验量。</small></div>`);
+  });
+};
+getComputed=function(){
+  if(!globalThis.CuiLiUiEngine)throw new Error('计算引擎尚未就绪');
+  if(cuiliIsTea())cuiliTeaSource();
+  const target=targetIons(),amount=targetDisplay();
+  const silica=computeSilicaAddon(0);
+  if(silica.enabled){
+    if(silica.route==='silica')silica.powderPct=cuiliNumberInput('silicaPowderPct','SiO₂比例',{min:0,max:2});
+    else cuiliNumberInput('silicaTarget','SiO₂目标',{min:0,max:10});
+    if(silica.route==='liquid')cuiliNumberInput('silicaAssay','液体硅浓度',{min:.1,max:100000});
+    if(silica.route==='potassium'){
+      const si=cuiliNumberInput('silicaKSiO2','产品SiO₂含量',{min:1,max:90});
+      const k=cuiliNumberInput('silicaKK2O','产品K₂O含量',{min:0,max:70});
+      if(si+k>100)throw new Error('SiO₂与K₂O质量百分比之和不能超过100%');
+      silica.siPct=si/100;silica.kPct=k/100;
+      silica.doseG=silica.targetMgL*5/1000/silica.siPct;
+    }
+  }
+  const c=globalThis.CuiLiUiEngine.computeUiFormulation({
+    dataset:{solutes:MAT,ionMolarMasses:IONM},target:{Ca:target.ca,Mg:target.mg,HCO3:target.hco3,naShare:target.naShare},
+    selectedIds:MAT.filter(m=>selected[m.id]).map(m=>m.id),bias:PROFILE[selectedBean].bias||{},tweaks:tweak,manualDosesG:Object.fromEntries(Object.entries(cuiliManualDosesG).filter(([id])=>selected[id])),
+    outputMode,outputAmount:amount,scaleResolutionG:Number($('scaleResolution').value),meterFactor:cuiliNumberInput('meterFactor','TDS仪表系数',{min:.4,max:.9}),silica
+  });
+  if(cuiliIsTea()){
+    const src=cuiliTeaSource(),band=PROFILE[selectedBean].water.ph;c.teaSource=src;c.teaWarnings=[];
+    if(src.ph===null||src.chlorine===null||src.iron===null)c.teaWarnings.push('源水实测尚不完整；缺失的pH、游离氯或铁离子不按正常值或零处理。');
+    if(src.ph!==null&&(src.ph<band[0]||src.ph>band[1]))c.teaWarnings.push(`源水pH ${src.ph}偏离当前茶预设的${band[0]}–${band[1]}参考带，请复核实测与茶汤表现；这不是饮用安全结论。`);
+    if(src.chlorine>0||src.iron>0)c.teaWarnings.push('源水检出游离氯或铁；母粉不能消除这些成分，请处理或更换水源。');
+  }
+  lastBase=c.baseAmounts;lastComputed=c;return c;
+};
+function cuiliResultError(error){
+  lastComputed=null;
+  $('engineStatus').className='engine-status invalid';$('engineStatus').textContent='暂不能计算：'+error.message;
+  $('mixSummary').textContent='请检查配方输入';
+  ['dose5L','dose1L','tdsEffective','v2CaMgL','v2MgMgL','v2Hco3MgL','v2Hardness','v2BoundRate','v2FreeRate','v2PrecipRate'].forEach(id=>v2SetText(id,'—'));
+  ['dose5LRange','dose5LExact','tdsOperationalRange','tdsExactNote'].forEach(id=>v2SetText(id,''));
+  $('tdsBadge').textContent='未计算';$('tdsBadge').className='tds-state tds-mid';
+  $('recipeList').innerHTML='<div class="note-box">'+error.message+'</div>';
+  $('v2IonBody').innerHTML='';$('riskItems').innerHTML='<div class="risk-item"><h4>输入尚未通过核验</h4><p>'+error.message+'</p></div>';
+  $('riskChips').innerHTML='';$('optimAction').classList.add('hidden');$('riskReturnAction').classList.remove('hidden');
+  $('optimAdvice').textContent='请返回配方页检查输入，当前不提供称量方案。';
+}
+function cuiliRiskText(risk,c){
+  const ion=c.loads,number=(value)=>fmt(value||0,1);
+  const descriptions={
+    'high-alkalinity':`HCO₃⁻ ${number(ion.HCO3)} mg/L，超过80 mg/L筛查参考；可降低碳酸氢盐，结合实际酸感复核。`,
+    'high-sulfate':`SO₄²⁻ ${number(ion.SO4)} mg/L，超过100 mg/L筛查参考；可降低硫酸盐投加并做盲测对照。`,
+    'high-chloride':`Cl⁻ ${number(ion.Cl)} mg/L，超过80 mg/L筛查参考；可降低氯化盐，并单独核对设备进水要求。`,
+    'high-sodium':`Na⁺ ${number(ion.Na)} mg/L，超过50 mg/L筛查参考；请复核钠盐用量。`,
+    'high-potassium':`K⁺ ${number(ion.K)} mg/L，超过60 mg/L筛查参考；请复核钾盐与硅酸钾的合计投加。`,
+    'high-ionic-mass':`已知离子质量之和 ${number(Object.values(ion).reduce((a,b)=>a+b,0))} mg/L，超过180 mg/L筛查参考；核对总用量，不能将此值直接当作实测TDS。`,
+    'charge-imbalance':'已知离子的电荷核对超出参考范围；请核对盐化学式、载体组成和输入是否完整。'
+  };
+  if(descriptions[risk.code])return descriptions[risk.code];
+  if(/carbonate|inorganic-alkalinity/.test(risk.code))return `碳酸盐碱度 ${number(c.metrics.carbonateAlkalinityMgLAsCaCO3)} mg/L（以CaCO₃计）偏高；可降低碳酸盐投加，核对CO₃²⁻与完整缓冲组成，不能只看HCO₃⁻。`;
+  return '当前配方触及保守浓度筛查条件，请核对实际投加、完整离子与缓冲组成。';
+}
+updateAll=function(){
+  updateScores();renderMats();
+  v2SetText('flavorFeedback',cuiliBudgetNotice||'总预算200；加减按钮每次调整5点，超出预算时其他项按比例让量。');
+  try{
+    const c=getComputed(),p=PROFILE[selectedBean],digits=c.scaleResolutionG<.01?3:2;
+    const needsReview=!c.matched||c.risks.risks.length>0||!c.ionicAccountingComplete||(c.teaWarnings||[]).length>0;
+    $('engineStatus').className='engine-status '+(needsReview?'review':'verified');
+    $('engineStatus').innerHTML=!c.matched?'<strong>部分目标存在偏差</strong><span>请查看离子核对，或调整盐源、微调和天平分辨率。</span>':c.risks.risks.length?'<strong>离子目标已核对，浓度需留意</strong><span>部分离子超过保守筛查阈值，请查看下方离子表和风险提醒。</span>':!c.ionicAccountingComplete?'<strong>已知离子已核对，硅载体信息不完整</strong><span>电荷、电导和总碱度仍需补充载体组成并实测。</span>':'<strong>离子目标已核对</strong><span>下方结果按显示称量值重新计算 · 基础水为接近零矿化RO水</span>';
+    if(c.risks.risks.length)$('engineStatus').insertAdjacentHTML('beforeend','<span>'+c.risks.risks.map(risk=>cuiliRiskText(risk,c)).join(' ')+'</span>');
+    if((c.teaWarnings||[]).length)$('engineStatus').insertAdjacentHTML('beforeend','<span>'+c.teaWarnings.join(' ')+'</span>');
+    $('mixSummary').textContent=outputMode==='premix'?`母粉实际总量 ${fmt(c.actualBatchG,digits)} g`:`配方水 ${fmt(c.outputAmount,1)} L`;
+    v2SetText('v2MainId',c.matched?'已核对':'需复核');v2SetText('v2MainName',p.name+'｜配方2.8');
+    v2SetText('dose5L',fmt(c.total,digits)+'g');
+    v2SetText('dose1L',fmt(c.total/5,digits)+'g');
+    v2SetText('dose5LRange',outputMode==='premix'?'从配好母粉中称取；每次取用前充分混匀':'由本次各盐称量折算，非额外添加量');
+    v2SetText('dose5LExact',`天平分辨率 ${c.scaleResolutionG}g；1L为等比例参考，微量称量宜配母粉。`);
+    v2SetText('tdsEffective',fmt(c.conductivity.meterTdsPpm,0)+' ppm');
+    v2SetText('tdsOperationalRange','电导参考 '+fmt(c.conductivity.ecUsCm,0)+' μS/cm');
+    v2SetText('tdsExactNote',`仪表换算系数 ${fmt(c.conductivity.factor,2)}；需实测校准`);
+    const within=c.conductivity.meterTdsPpm>=p.tds[0]&&c.conductivity.meterTdsPpm<=p.tds[1];
+    $('tdsBadge').className='tds-state '+(within?'tds-ok':'tds-mid');$('tdsBadge').textContent=within?'接近经验区间':'供实测比较';
+    v2SetText('tdsTheory',fmt(Object.values(c.loads).reduce((a,b)=>a+b,0),1)+'mg/L');
+    v2SetText('tdsTargetRange',p.tds[0]+'–'+p.tds[1]+' ppm');
+    $('tdsText').innerHTML='理想稀溶液电导参考不等于TDS笔实测值，也不代表风味评分。保留原预设区间作为对照，不据此断言香气、甜感或苦涩。仪表系数、温度、实际溶解与有机络合均会影响读数。'+(!c.ionicAccountingComplete?' 本路线硅载体离子未完全指定，离子质量和电导仅为已知部分参考。':'');
+    v2SetText('v2CaMgL',fmt(c.loads.Ca,2)+'mg/L');v2SetText('v2MgMgL',fmt(c.loads.Mg,2)+'mg/L');
+    v2SetText('v2Hco3MgL',fmt(c.loads.HCO3,2)+'mg/L');
+    const mono=(c.loads.Na||0)+(c.loads.K||0);v2SetText('v2NaShare',mono?fmt(c.loads.Na/mono*100,0)+'%':'—');
+    v2SetText('v2Hardness',fmt(c.metrics.hardnessMgLAsCaCO3,2)+'mg/L');
+    v2SetText('v2BoundRate',fmt(c.metrics.carbonateAlkalinityMgLAsCaCO3,2)+'mg/L');
+    v2SetText('v2FreeRate',(c.residuals.HCO3>=0?'+':'')+fmt(c.residuals.HCO3,2)+'mg/L');
+    v2SetText('v2PrecipRate',c.silica.enabled&&c.silica.route==='potassium'?'含未建模项':c.chargeBalance.status==='balanced'?'通过':'需复核');
+    v2SetBar('v2BarCa',c.loads.Ca/35);v2SetBar('v2BarMg',c.loads.Mg/35);v2SetBar('v2BarHco3',c.loads.HCO3/60);v2SetBar('v2BarNa',mono?c.loads.Na/mono:0);v2SetBar('v2BarHard',c.metrics.hardnessMgLAsCaCO3/140);
+    $('v2ReactionTags').innerHTML='<span class="v2-tag">pH需实测</span><span class="v2-tag">未求解真实络合/沉淀比例</span>';
+    v2SetText('v2Intent','沿用豆型与风味微调的设计，以Ca、Mg、HCO₃实际离子目标求解配方，再核对显示称量值产生的结果。');
+    v2SetText('v2BestFor','RO水复矿、同豆不同水对照、不同盐型比较。预设不是当前豆批的实测成分。');
+    v2SetText('v2Adv','独立观察硬度、碳酸盐碱度与完整阴离子；'+(cuiliDoseTweakMode==='linked'?'固定总量联动时，其他盐的同步变化会逐项显示。':outputMode==='premix'?'独立调量改变本盐每5L投加目标，母粉批量按新比例重算。':'独立调量时，只改变当前盐的投加量。'));
+    v2SetText('v2Draw','柠檬酸盐与乳酸盐的感官、滴定缓冲和实际络合需另测；模型不保证花香增强、抑苦或设备适用性。');
+    const ionNames={Ca:'Ca²⁺',Mg:'Mg²⁺',Na:'Na⁺',K:'K⁺',HCO3:'HCO₃⁻',CO3:'CO₃²⁻',Cl:'Cl⁻',SO4:'SO₄²⁻',Lactate:'乳酸根',Citrate:'柠檬酸根',Gluconate:'葡萄糖酸根'};
+    $('v2IonBody').innerHTML=Object.entries(ionNames).map(([id,label])=>`<tr><td>${label}</td><td class="r">${fmt(c.loads[id]||0,2)} mg/L</td><td>${Object.hasOwn(c.targets,id)?`目标 ${fmt(c.targets[id],2)}；偏差 ${c.residuals[id]>=0?'+':''}${fmt(c.residuals[id],2)} mg/L`:'按盐质量与化学计量核算总量'}</td></tr>`).join('');
+    $('ionExplain').innerHTML='<div class="note-box">GH只由Ca/Mg计入。碳酸盐碱度以CaCO₃计，仅计HCO₃⁻与CO₃²⁻；有机阴离子贡献未被当成等量碳酸氢根。总碱度与pH应按明确终点和方法实测。</div>';
+    $('riskExplain').innerHTML='<div class="helper">下列为完全溶解、未发生沉淀的投料账本，不是游离离子活度。若实际返浑或析出，应以实测结果为准。</div>';
+    $('silicaSummary').classList.toggle('hidden',!c.silica.enabled);
+    if(c.silica.enabled)$('silicaSummary').textContent=c.warnings.filter(x=>/硅|SiO/.test(x)).join(' ');
+    renderRecipeCards();renderRiskPage();
+    if(typeof cuiliUpdateModeLabels==='function')cuiliUpdateModeLabels();
+    if(cuiliIsTea())$('teaProfilePanel').innerHTML=`<h4>${p.name} · 经验起点</h4><div class="tea-mode-note">保留原茶型的低剂量复矿构思。Ca/Mg/HCO₃中心值是工程预设，尚未对当前茶样验证；源水pH、游离氯与铁离子需实测。</div>`;
+    renderBeans();
+    $('teaPlanGuidance').classList.toggle('hidden',!cuiliIsTea());
+    if(cuiliIsTea())$('teaPlanGuidance').innerHTML=`<h4>${p.name} · 经验预设</h4><p>源水pH、游离氯与铁离子需实测。母粉调整不能消除源水中的氯或铁；不显示未经平衡求解的茶膜或冷后浑百分比。</p>`;
+  }catch(error){cuiliResultError(error);}
+};
+renderRecipeCards=function(){
+  const c=lastComputed;if(!c)return;
+  if(cuiliDraggingSalt&&document.getElementById('recipe-'+cuiliDraggingSalt)){
+    Object.entries(c.displayDosesG).forEach(([id,g])=>{const card=document.getElementById('recipe-'+id);if(card){card.querySelector('.recipe-amount').textContent=fmt(g,c.scaleResolutionG<.01?3:2)+'g';const label=card.querySelector('.salt-tweak-val');if(label)label.textContent=(tweak[id]>=0?'+':'')+fmt(tweak[id]||0,1)+'%';}});return;
+  }
+  const digits=c.scaleResolutionG<.01?3:2,lines=[];
+  lines.push(`<div class="weighing-note"><strong>按编号依次称量</strong><br>相对稳定、防潮要求较低的先称，易吸湿的后称并立即封好原包装；同类按本次用量从大到小排列。未测松装密度，不把分子量或克数当作体积/比重。<br>${outputMode==='premix'?'分别称好后再按几何递增法混匀：少量组分先与相近量基粉混合，再逐次加入余粉。编号是称量顺序，不是把所有粉末逐项直接倒进同瓶浓缩液。':'先量取目标体积的RO水，各盐分别称好后逐项溶解；不在小体积中混成高浓度钙盐/碱度母液。'}</div>`);
+  if(c.silica.enabled){
+    const liquid=c.silica.route==='liquid';
+    const value=liquid?c.silica.doseMl*(outputMode==='direct'?c.outputAmount/5:1):c.displaySilicaG;
+    lines.push(`<div class="recipe-card"><div class="recipe-summary"><div class="recipe-amount">${fmt(value,liquid?3:digits)}${liquid?'mL':'g'}</div><div class="recipe-name">${c.silica.name}<small>${liquid?'单独添加液体；不加入干母粉':'微量硅源单独称量；粉体几何预混，勿直接倾入少量潮湿盐中'}${liquid&&outputMode==='premix'?'；每5L水用量':''}</small></div></div></div>`);
+  }
+  const zeroRows=Object.entries(c.displayDosesG).filter(([,g])=>g===0).map(([id,grams])=>({id,grams,moistureClass:(lastBase[id]||0)>1e-8?'当前不投加；可重新微调':'当前目标未自动使用；可手动试验投加'}));
+  globalThis.CuiLiUiEngine.getWeighingOrder(c.displayDosesG,MAT).concat(zeroRows).forEach(({id,grams:g,moistureClass},step)=>{
+    const m=MAT.find(item=>item.id===id),open=openRecipeId===id;
+    const manualEditor=!(c.solver.exactDosesG[id]>1e-8)?`<div class="material-assay"><label>手动试验 g / 5L <input aria-label="${m.name}结果手动投加" type="number" min="0" max="10" step="0.001" value="${Object.hasOwn(cuiliManualDosesG,id)?cuiliManualDosesG[id]:''}" placeholder="未投加" onchange="setManualDose('${id}',this.value)"></label><small>不提供当前预设的Ca/Mg/HCO₃目标，允许小剂量实验；离子与警示按实际量复算。</small></div>`:'';
+    const max=cuiliDoseTweakMode==='linked'&&lastBase[id]>0?(Object.values(lastBase).reduce((a,b)=>a+b,0)/lastBase[id]-1)*100:200;
+    lines.push(`<div class="recipe-card ${open?'open':''}" id="recipe-${id}" ${g>0?`data-weighing-step="${step+1}"`:""}><div class="recipe-summary"><div class="recipe-amount">${fmt(g,digits)}g</div><div class="recipe-name"><span class="recipe-step">${g>0?step+1:"—"}</span>${m.name}<small>${moistureClass}</small></div><button class="recipe-arrow" aria-label="展开${m.name}" onclick="toggleRecipeDetail('${id}',event)">▾</button></div><div class="recipe-detail" onclick="event.stopPropagation()"><div class="detail-line">本批原料纯度 ${fmt(m.purity*100,1)}%；按显示用量复算。</div>${manualEditor}<div class="detail-line">${cuiliDoseTweakMode==='linked'?'固定总量：当前盐增加，其余盐按比例缩减；范围受可分配总量限制。':outputMode==='premix'?'独立调量：调整本盐每5L投加目标；母粉批量按新配比重算。':'独立调量：只改变本盐用量，允许-100%至+200%。'}</div><div class="tweak-head"><button class="mini-btn" ${lastBase[id]>0?'':'disabled'} onclick="nudgeSalt('${id}',-5)">−5%</button><span class="salt-tweak-val">${tweak[id]>=0?'+':''}${fmt(tweak[id]||0,1)}%</span><button class="mini-btn" ${lastBase[id]>0?'':'disabled'} onclick="nudgeSalt('${id}',5)">+5%</button></div><input ${lastBase[id]>0?'':'disabled'} aria-label="${m.name}局部微调" type="range" min="-100" max="${fmt(max,1)}" step="0.1" value="${fmt(tweak[id]||0,1)}" onpointerdown="cuiliDraggingSalt='${id}'" onpointerup="cuiliDraggingSalt=null;renderRecipeCards()" onpointercancel="cuiliDraggingSalt=null;renderRecipeCards()" oninput="setTweak('${id}',this.value)" onclick="event.stopPropagation()"></div></div>`);
+  });
+  if(optimizationMessage)lines.unshift(`<div class="optim-change">${optimizationMessage}</div>`);
+  $('recipeList').innerHTML=lines.join('');
+};
+cuiliTeaSource=function(){
+  const parse=(id,label,min,max)=>{
+    const input=$(id),text=input.value.trim();
+    if(input.validity&&input.validity.badInput)throw new Error(label+'必须为有效数值，未测请留空');
+    if(!text)return null;
+    const n=Number(text);
+    if(!Number.isFinite(n)||n<min||n>max)throw new Error(label+'须在'+min+'–'+max+'范围内，未测请留空');
+    return n;
+  };
+  return {ph:parse('teaMeasuredPh','源水pH',0,14),chlorine:parse('teaFreeChlorine','游离氯 mg/L',0,5),iron:parse('teaIron','铁离子 mg/L',0,5)};
+};
+renderRiskPage=function(){
+  const c=lastComputed;if(!c)return;
+  const items=[];
+  if(!c.matched)items.push(['离子目标尚未匹配',Object.keys(c.targets).map(ion=>`${ion}：目标${fmt(c.targets[ion],2)}，实得${fmt(c.loads[ion],2)} mg/L`).join('；')]);
+  for(const risk of c.risks.risks)items.push(['浓度筛查提醒',cuiliRiskText(risk,c)+' 该提示不是经杯测验证的风味或设备安全阈值。']);
+  for(const text of c.warnings)items.push(['需留意',text]);
+  items.push(['化学模型边界','未预测pH、真实结合率、沉淀率或咖啡中各酸的萃取率。沉淀与络合需溶液平衡数据和实验验证。']);
+  items.push(['研究依据','近期研究支持优先观察碳酸氢根与感知酸度；尚无通用证据保证某个Ca/Mg比或某种盐能增强特定豆的花香。']);
+  if(cuiliIsTea()){
+    const src=cuiliTeaSource();
+    items.push(['茶类源水实测',`pH：${src.ph===null?'未提供':src.ph}；游离氯：${src.chlorine===null?'未提供':src.chlorine+' mg/L'}；铁：${src.iron===null?'未提供':src.iron+' mg/L'}。缺失值不按零处理。`]);
+    for(const text of c.teaWarnings||[])items.push(['源水实测提醒',text]);
+  }
+  $('riskChips').innerHTML=`<span class="risk-chip ${c.matched?'good':'warn'}">目标${c.matched?'已核对':'有偏差'}</span><span class="risk-chip warn">完全溶解假设</span><span class="risk-chip good">反应比例需实测</span>`;
+  $('riskItems').innerHTML=items.map(([title,text])=>`<div class="risk-item"><h4>${title}</h4><p>${text}</p></div>`).join('');
+  $('optimAction').classList.toggle('hidden',c.matched);$('riskReturnAction').classList.remove('hidden');
+  $('optimAdvice').textContent=c.matched?'离子账本已核对；仍需杯测与实测确认。':'可恢复当前盐体系的基础选择后重新核算，或返回配方页自行调整。';
+  $('optimChange').classList.toggle('hidden',!optimizationMessage);$('optimChange').textContent=optimizationMessage;
+};
+optimizeRecipe=function(){
+  MAT.forEach(m=>tweak[m.id]=0);
+  setSaltSystem(saltSystem);
+  optimizationMessage='已清除局部微调，恢复当前盐体系的基础选择；请核对新的用量。';
+  updateAll();goPage('plan');
+};
+const cuiliOpenModal28=openModal;
+openModal=function(type){
+  if(type!=='tds'){cuiliOpenModal28(type);return;}
+  $('modal').classList.add('show');$('modalTitle').textContent='TDS参考、称量与研究边界';
+  $('modalBody').innerHTML='<p>TDS笔由电导率乘仪表系数得到ppm。本工具允许设置该系数，但电导仅为理想稀溶液参考，没有用虚构沉淀率扣减读数；需要用同批原料实测校准。</p><p>上方各盐用量按选择的天平分辨率取整，离子结果按同一组显示用量重新核算。母粉模式还核算了批量取整和每5L母粉投加量取整。</p><p>碳酸盐碱度以CaCO₃计；有机盐的完整滴定碱度与真实络合未求解。保留原豆型设计作为杯测起点，不代表当前豆批实测酸谱。</p><p><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13579507/" target="_blank" rel="noopener">2026 水组成与感官研究</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10907646/" target="_blank" rel="noopener">2024 钙镁与有机酸实验</a></p>';
+};
+</script>
+<script type="module">
+import * as uiEngine from './core/ui-engine.mjs';
+globalThis.CuiLiUiEngine=uiEngine;
+for(const id of ['floral','sweet','acid','bitter']){
+  const range=document.getElementById(id);range.setAttribute('aria-label',id+'风味目标');
+  range.insertAdjacentHTML('afterend',`<div class="tweak-head"><button class="mini-btn" onclick="nudgeFlavor('${id}',-5)">−5</button><small class="helper">0–100点</small><button class="mini-btn" onclick="nudgeFlavor('${id}',5)">+5</button></div>`);
+}
+document.querySelector('.budget-box').insertAdjacentHTML('afterend','<div id="flavorFeedback" class="helper" role="status" style="margin-top:10px"></div>');
+try{init();}catch(error){cuiliResultError(error);}
 </script>
 </body>
 </html>

@@ -22,7 +22,7 @@ const sourceRevision = /^[0-9a-f]{8,40}$/.test(sourceCommit) ? sourceCommit.slic
 const datePart = sourceDate.slice(0, 10).replaceAll('-', '');
 const dataVersion = `1.0.${datePart}+app.${pkg.version}.src.${sourceRevision}`;
 const dataRel = `data/water-chemistry-data-${dataVersion}.json`;
-const moduleRel = 'modules/water-engine-1.0.0.mjs';
+const moduleRel = 'modules/water-engine-1.1.0.mjs';
 fs.mkdirSync(path.join(out, 'data'), { recursive: true });
 fs.mkdirSync(path.join(out, 'modules'), { recursive: true });
 const dataText = JSON.stringify({ ...dataset, dataVersion }, null, 2) + '\n';
@@ -58,7 +58,7 @@ const manifest = {
     'pH is not predicted without carbonate equilibrium, dissolved CO2, temperature and activity coefficients.',
     'Complete dissolution and no precipitation are explicit idealizations; low-solubility salts require experimental validation.'
   ],
-  metadata: { sourceAppVersion: pkg.version, sourceRevision, deterministicEngineVersion: '1.0.0', dataSource: 'constants-extracted-from-standalone-app-at-build-time' }
+  metadata: { sourceAppVersion: pkg.version, sourceRevision, deterministicEngineVersion: '1.1.0', dataSource: 'constants-extracted-from-standalone-app-at-build-time' }
 };
 fs.writeFileSync(path.join(out, 'latest.json'), JSON.stringify(manifest, null, 2) + '\n', 'utf8');
 console.log(JSON.stringify({ output: out, releaseId: manifest.releaseId, counts: manifest.counts }, null, 2));

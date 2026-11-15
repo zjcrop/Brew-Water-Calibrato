@@ -38,7 +38,7 @@ jobs:
           set -euxo pipefail
           test -s index.html
           grep -q "CUI_LI_V27_TEA_PATCH" index.html
-          grep -q "咖啡与茶冲泡调水 配方2.7版" index.html
+          grep -q "咖啡与茶冲泡调水 配方2.8版" index.html
           npm run check
           SOURCE_COMMIT_DATE="$(git log -1 --format=%cI -- index.html core provider)" npm run prepare:web
           test -s www/provider/latest.json

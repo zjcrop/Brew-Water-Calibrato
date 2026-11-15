@@ -1,79 +1,32 @@
-# [在线访问：萃离｜咖啡与茶冲泡调水](https://zjcrop.github.io/Brew-Water-Calibrato/)
+# 萃离｜Coffee & Tea Water Calibrator 2.8.0
 
-> GitHub Pages：<https://zjcrop.github.io/Brew-Water-Calibrato/>
+面向咖啡与茶冲泡的RO水复矿、配方计算及操作核验工具。
 
-# 萃离｜Coffee & Tea Water Calibrator
+- 网页版本：2.8；Android版本：2.8.0，versionCode 20800。
+- 统一化学计量核心：1.1.0；跨项目water-formulation/1.0契约继续保留。
+- 保留咖啡与茶、半有机与无机盐、风味预算、预混母粉及配方水模式。
+- 新增准确配比联动、独立调量、批次纯度、常见水合盐、称量顺序、量化后离子复核和实时提示。
 
-面向咖啡与茶冲泡的RO水复矿、配方计算和水质风险评估工具。
+详见 [升级说明](docs/RELEASE_v2.8.md) 与 [研究依据和验证边界](docs/SCIENCE_AND_VALIDATION_v2.8.md)。原2.7茶类研究和2.6.1审核保留作历史记录。
 
-## 当前版本
+## 运行与验证
 
-- 网页版本：**2.7**
-- Android版本：**2.7.0**
-- Android包名：`com.zjcrop.brewwater`
-- 发布方式：从永久版2.6.1迁移，迁移后源码直接保留咖啡与茶双模式。
+需要Node.js 22以上，执行npm ci后：
 
-## v2.7核心更新
+- npm run check：语法、算术、求解、数据提取、量化、微调和称量回归。
+- npm run prepare:web：构建同源网页、核心与校验数据包。
+- npm run preview：打开本地HTTP服务，浏览器访问 http://127.0.0.1:8768/ 。
+- npm run test:browser：需要Playwright；支持PLAYWRIGHT_MODULE_PATH与BROWSER_EXECUTABLE环境变量。
 
-### 咖啡／茶双模式
+本版使用本地ES模块，通过HTTP或Android加载；不要直接以file协议打开index.html。
 
-- 保留原有全部咖啡预设、K/Na再平衡、TDS操作控制带和干涩风险模型。
-- 新增饮品类型切换，茶模式不会混入咖啡预设列表。
-- 茶模式默认使用低剂量无机盐复矿；半有机盐保留为实验路径，不宣称为研究资料直接推荐。
+## 发布
 
-### 六类茶叶针对性配方
+GitHub Pages与Android工作流均会校验共享核心。Android工作流版本为2.8.0；只在实际构建成功后提供APK，不将网页验证等同设备测试。仓库本地变更不会自动更新已发布网站或用户手机。
 
-- 绿茶：TDS 30–80 ppm，pH 6.5–7.0。
-- 白茶：TDS 50–100 ppm，pH 6.5–7.0。
-- 清香型乌龙：TDS 30–80 ppm，pH 6.5–7.0。
-- 浓香／重焙乌龙：TDS 70–120 ppm，pH 6.8–7.2。
-- 红茶：TDS 80–150 ppm，pH 6.8–7.5。
-- 黑茶／熟普洱：TDS 100–200 ppm，pH 7.0–7.5。
+## 计算边界
 
-### 茶类专用评估
-
-- 实测源水pH；
-- 游离氯；
-- 铁离子；
-- 茶膜／茶垢风险；
-- 冷后浑风险；
-- 香气压制风险；
-- 按茶类输出水质建议、化学逻辑和感官风险。
-
-## 重要技术边界
-
-- pH不能由TDS或HCO₃⁻可靠反推，因此必须实测。
-- TDS笔是电导换算，不使用固定的“电导率=某TDS”关系。
-- 游离氯和铁来自源水，不能通过母粉配方消除。
-- 资料中的铁离子`<2 ppm`不应解释为理想目标；茶多酚体系中应尽可能低。
-- 不同茶类的Ca、Mg、HCO₃⁻中心值属于工程落地参数，TDS和pH边界来自研究汇总。
-
-## 部署
-
-上传本扩展包到仓库根目录，运行一次：
-
-```text
-Permanent migrate Brew Water v2.7
-```
-
-迁移工作流会更新`index.html`、`package.json`、`package-lock.json`和Android版本，然后删除自身。
-
-Pages设置：
-
-```text
-Settings → Pages → Build and deployment → Source → GitHub Actions
-```
-
-Android构件：
-
-```text
-Brew-Water-Calibrato-v2.7.0-debug
-```
-
-## 资料
-
-- `TEA_WATER_AUDIT_v2.7.md`：茶类配方设计和证据边界。
-- `WORKFLOW_CONFIG_v2.7.md`：永久迁移、Pages和Android工作流。
+GH与碳酸盐碱度贡献分别计算；含有机盐时不将理论贡献当成完整滴定碱度。不从TDS反推pH，不提供缺少平衡数据的真实结合率或沉淀率。豆型参数与风险筛查是对照起点，需实液与杯测验证。
 
 ## ⚠️ 跨项目稳定数据格式（后续开发强制规则）
 

@@ -1,0 +1,131 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { createPreviewServer } from './preview.mjs';
+
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const playwright=await import(process.env.PLAYWRIGHT_MODULE_PATH?pathToFileURL(process.env.PLAYWRIGHT_MODULE_PATH).href:'playwright');
+const server=createPreviewServer(path.join(root,'www'),'/Brew-Water-Calibrato/');
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+const port=server.address().port;
+const browser=await playwright.chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
+const output=path.join(root,'test-results');
+await fs.mkdir(output,{recursive:true});
+const errors=[],badRequests=[],checks=[];
+try {
+  const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
+  page.on('pageerror',error=>errors.push(error.message));
+  page.on('response',response=>{if(response.status()>=400&&!response.url().endsWith('/favicon.ico'))badRequests.push(`${response.status()} ${response.url()}`);});
+  await page.goto(`http://127.0.0.1:${port}/Brew-Water-Calibrato/`,{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>typeof getComputed==='function'&&globalThis.CuiLiUiEngine);
+  assert.match(await page.title(),/配方2\.8版/);
+  const provider=await page.evaluate(async()=>{
+    const p=await globalThis.BrewWaterProviderReady;
+    return {profiles:Object.keys(p.dataset.profiles),version:p.dataset.sourceAppVersion,contract:p.manifest.contract};
+  });
+  assert.equal(provider.version,'2.8.0');
+  assert.equal(provider.contract,'water-formulation/1.0');
+  assert.ok(provider.profiles.length>=16,'provider must include coffee and tea profiles');
+  checks.push('Built bundle loads shared core and verified provider under project subpath');
+  await page.screenshot({path:path.join(output,'mobile-home.png'),fullPage:true});
+  await page.getByRole('button',{name:'开始调配',exact:true}).click();
+  await page.waitForTimeout(150);
+  await page.screenshot({path:path.join(output,'mobile-params.png'),fullPage:true});
+  // Walk the actual inline UI controller; both coffee/tea wrappers execute.
+  const presets=await page.evaluate(()=>{
+    const result=[];
+    for(const id of Object.keys(PROFILE)){
+      selectedBean=id;
+      const p=PROFILE[id];
+      ['floral','sweet','acid','bitter'].forEach((key,i)=>document.getElementById(key).value=p.s[i]);
+      const c=getComputed();
+      result.push({id,loads:c.loads,total:c.total,hardness:c.loads.Ca*2.497+c.loads.Mg*4.118});
+    }
+    return result;
+  });
+  assert.equal(presets.length,provider.profiles.length);
+  for(const p of presets){
+    assert.ok(p.total>0&&Number.isFinite(p.total),`valid dose ${p.id}`);
+    for(const [ion,value]of Object.entries(p.loads))assert.ok(Number.isFinite(value)&&value>=0,`${p.id} ${ion} finite`);
+  }
+  checks.push(`All ${presets.length} actual UI profiles return nonnegative finite doses and ion loads`);
+  await page.evaluate(()=>{setBeverageMode('coffee');selectBean('geisha');goPage('plan');});
+  await page.waitForTimeout(150);
+  await page.screenshot({path:path.join(output,'mobile-plan.png'),fullPage:true});
+  const planText=await page.locator('#page-plan').innerText();
+  assert.ok(!/NaN|Infinity|undefined/.test(planText),'No invalid numeric output in plan');
+  // Exercise the user's actual controls and inspect lastComputed without calling
+  // the solver again: results and warnings must update in the input handler.
+  await page.evaluate(()=>{setOutputMode('direct');$('targetAmount').value=5;setDoseTweakMode('linked');selectBean('geisha');goPage('plan');openRecipeId='mglac';renderRecipeCards();});
+  const beforeLinked=await page.evaluate(()=>({amounts:{...lastComputed.amounts},base:{...lastBase}}));
+  await page.locator('#recipe-mglac').getByRole('button',{name:'+5%',exact:true}).click();
+  const afterLinked=await page.evaluate(()=>({amounts:{...lastComputed.amounts},total:lastComputed.total,feedback:$('tweakFeedback').textContent}));
+  const sumAmounts=amounts=>Object.values(amounts).reduce((a,b)=>a+b,0);
+  assert.ok(Math.abs(sumAmounts(beforeLinked.amounts)-sumAmounts(afterLinked.amounts))<=0.006,'Linked total conserved within per-salt scale rounding');
+  assert.ok(Math.abs(afterLinked.amounts.mglac-beforeLinked.base.mglac*1.05)<=0.0011,'Edited salt reaches requested +5%, then scale rounding');
+  assert.ok(Object.entries(beforeLinked.amounts).every(([id,g])=>id==='mglac'||afterLinked.amounts[id]<=g+.0011),'Other salts give up mass immediately');
+  assert.match(afterLinked.feedback,/联动/);
+  checks.push('Actual +5% button keeps total mass and updates other salts immediately');
+  await page.locator('#tweakModeSelect').selectOption('independent');
+  await page.evaluate(()=>{openRecipeId='mglac';renderRecipeCards();});
+  const independentBase=await page.evaluate(()=>({...lastComputed.amounts}));
+  await page.locator('#recipe-mglac input[type=range]').fill('100');
+  const independentAfter=await page.evaluate(()=>({amounts:{...lastComputed.amounts},status:$('engineStatus').textContent}));
+  for(const [id,g]of Object.entries(independentBase))if(id!=='mglac')assert.equal(independentAfter.amounts[id],g,'Independent direct-water dosing preserves other salt masses');
+  assert.match(independentAfter.status,/偏差|提醒|复核/);
+  checks.push('Independent range input updates only the selected salt and live target warning');
+  await page.locator('#recipe-mglac input[type=range]').fill('-100');
+  await page.locator('#recipe-mglac input[type=range]').fill('0');
+  assert.ok(await page.evaluate(()=>lastComputed.amounts.mglac>0),'A zero-dose salt stays editable and recovers');
+  checks.push('Zero-dose salt card remains available and can be restored');
+  await page.evaluate(()=>{selectBean('dark');setSaltSystem('inorganic');selected.nahco3=false;setDoseTweakMode('independent');updateAll();openRecipeId='khco3';renderRecipeCards();});
+  await page.locator('#recipe-khco3 input[type=range]').fill('200');
+  const highBuffer=await page.evaluate(()=>({hco3:lastComputed.loads.HCO3,risk:lastComputed.risks.level,status:$('engineStatus').className}));
+  assert.ok(highBuffer.hco3>80);
+  assert.equal(highBuffer.risk,'high');
+  assert.match(highBuffer.status,/review|invalid/);
+  checks.push('High bicarbonate at extended range triggers a visible warning immediately');
+  await page.evaluate(()=>{['floral','sweet','acid','bitter'].forEach(id=>$(id).value=50);$('floral').value=100;budgetInput('floral');});
+  const flavor=await page.evaluate(()=>({values:['floral','sweet','acid','bitter'].map(id=>Number($(id).value)),feedback:$('flavorFeedback').textContent}));
+  assert.equal(flavor.values.reduce((a,b)=>a+b,0),200);
+  assert.equal(flavor.values[0],100);
+  assert.match(flavor.feedback,/让出/);
+  checks.push('Flavor budget redistributes other controls at the limit and explains the change');
+  await page.evaluate(()=>{setSaltSystem('half');selectBean('geisha');setDoseTweakMode('linked');goPage('plan');});
+  await page.evaluate(()=>{selected.nacit=true;updateAll();openRecipeId='nacit';renderRecipeCards();});
+  const beforeManual=await page.evaluate(()=>lastComputed.loads.Citrate);
+  await page.locator('#recipe-nacit input[type=number]').fill('0.05');
+  await page.locator('#recipe-nacit input[type=number]').blur();
+  assert.ok(await page.evaluate(()=>lastComputed.loads.Citrate)>beforeManual,'Manual citrate experiment enters real ion bookkeeping');
+  checks.push('Selected experimental citrate accepts explicit g/5L dosing without replacing bicarbonate');
+  await page.evaluate(()=>{$('targetAmount').value='';updateAll();});
+  assert.equal(await page.evaluate(()=>lastComputed),null);
+  assert.match(await page.locator('#engineStatus').innerText(),/不能为空/);
+  assert.equal(await page.locator('#dose5L').innerText(),'—');
+  checks.push('Invalid input clears stale dose and displays an actionable error');
+  await page.evaluate(()=>{$('targetAmount').value=5;setSaltSystem('half');selectBean('geisha');updateAll();});
+  await page.evaluate(()=>goPage('risk'));
+  await page.screenshot({path:path.join(output,'mobile-risk.png'),fullPage:true});
+  await page.evaluate(()=>{setBeverageMode('tea');goPage('plan');});
+  await page.evaluate(()=>{$('teaFreeChlorine').value=-1;updateAll();});
+  assert.equal(await page.evaluate(()=>lastComputed),null,'Negative source concentration must be rejected');
+  await page.evaluate(()=>{$('teaFreeChlorine').value='';$('teaMeasuredPh').value=15;updateAll();});
+  assert.equal(await page.evaluate(()=>lastComputed),null,'pH outside 0–14 must be rejected');
+  await page.evaluate(()=>{$('teaMeasuredPh').value=2;updateAll();});
+  assert.match(await page.locator('#riskItems').innerText(),/偏离|超出|参考/,'Valid but off-profile source pH must prompt review');
+  checks.push('Tea inputs reject negative concentrations and invalid pH, and flag off-profile measurements');
+  await page.evaluate(()=>{['teaMeasuredPh','teaFreeChlorine','teaIron'].forEach(id=>$(id).value='');updateAll();});
+  assert.match(await page.locator('#riskItems').innerText(),/未提供/,'Unknown tea measurements stay unknown');
+  await page.screenshot({path:path.join(output,'mobile-tea.png'),fullPage:true});
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
+  assert.equal(overflow,false,'Mobile page must not overflow horizontally');
+  checks.push('Mobile home, parameters, plan, risk and tea flows render without numeric errors or horizontal overflow');
+  await page.setViewportSize({width:1366,height:900});
+  await page.evaluate(()=>{setBeverageMode('coffee');goPage('plan');});
+  await page.screenshot({path:path.join(output,'desktop-plan.png'),fullPage:true});
+  assert.deepEqual(errors,[],'No uncaught browser exceptions');
+  assert.deepEqual(badRequests,[],'No broken bundle or provider requests');
+  await fs.writeFile(path.join(output,'browser-results.json'),JSON.stringify({checks,provider,presets,errors,badRequests},null,2));
+  console.log(JSON.stringify({checks,errors,badRequests},null,2));
+}finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

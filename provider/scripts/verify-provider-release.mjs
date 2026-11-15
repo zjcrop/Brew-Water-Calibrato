@@ -21,8 +21,11 @@ const moduleArtifact = manifest.artifacts.find((item) => item.kind === 'module')
 const dataset = JSON.parse(fs.readFileSync(path.join(out, dataArtifact.path), 'utf8'));
 validateDataset(dataset);
 if (dataset.solutes.length !== manifest.counts.solutes) throw new Error('Solute count mismatch.');
+if (Object.keys(dataset.profiles).length !== manifest.counts.profiles) throw new Error('Profile count mismatch.');
+if (Object.keys(dataset.ionMolarMasses).length !== manifest.counts.ions) throw new Error('Ion count mismatch.');
+if (dataset.sourceAppVersion !== manifest.metadata.sourceAppVersion) throw new Error('Provider app-version mismatch.');
 const imported = await import(`${pathToFileURL(path.join(out, moduleArtifact.path)).href}?verify=${Date.now()}`);
-for (const name of ['validateDataset','calculateIonLoads','chargeBalance','quantizeDose','solveFormulation','evaluateOperationalRisks']) {
+for (const name of ['validateDataset','calculateIonLoads','chargeBalance','quantizeDose','solveFormulation','formulateBrewingWater','calculateWaterMetrics','evaluateOperationalRisks']) {
   if (typeof imported[name] !== 'function') throw new Error(`Engine export missing: ${name}`);
 }
 const defaultSolutes = dataset.solutes.filter((item) => item.default).slice(0, 3).map((item) => item.id);

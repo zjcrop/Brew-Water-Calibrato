@@ -1,21 +1,23 @@
 {
   "name": "brew-water-calibrato",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "private": true,
-  "description": "萃离｜咖啡与茶冲泡调水 Android wrapper v2.7.0",
+  "description": "萃离｜咖啡与茶冲泡调水，统一化学计量引擎 v2.8.0",
   "type": "module",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "test": "node --test provider/tests/*.test.mjs",
-    "check:syntax": "node --check core/water-engine.mjs && node --check core/provider-bootstrap.mjs && node --check provider/scripts/extract-embedded-data.mjs && node --check provider/scripts/build-provider-release.mjs && node --check provider/scripts/verify-provider-release.mjs",
+    "check:syntax": "node --check core/water-engine.mjs && node --check core/provider-bootstrap.mjs && node --check provider/scripts/extract-embedded-data.mjs && node --check provider/scripts/build-provider-release.mjs && node --check provider/scripts/verify-provider-release.mjs && node --check core/ui-engine.mjs && node scripts/check-source.mjs",
     "check": "npm run check:syntax && npm test",
     "provider:build": "node provider/scripts/build-provider-release.mjs --write",
     "provider:verify": "node provider/scripts/verify-provider-release.mjs",
     "prepare:web": "node scripts/prepare-web.mjs",
     "android:add": "npm run prepare:web && npx cap add android",
-    "android:sync": "npm run prepare:web && npx cap sync android"
+    "android:sync": "npm run prepare:web && npx cap sync android",
+    "preview": "node scripts/preview.mjs",
+    "test:browser": "node scripts/browser-smoke.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.4.2",
