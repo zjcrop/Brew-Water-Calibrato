@@ -1,17 +1,17 @@
 {
   "provider": "brew-water-calibrato",
   "contract": "water-formulation/1.0",
-  "releaseId": "brew-water-1.0.20261115+app.2.8.0.src.970bce78c929",
-  "dataVersion": "1.0.20261115+app.2.8.0.src.970bce78c929",
+  "releaseId": "brew-water-1.0.20261115+app.2.8.1.src.a7fc956fc348",
+  "dataVersion": "1.0.20261115+app.2.8.1.src.a7fc956fc348",
   "schemaVersion": "1.0",
-  "generatedAt": "2026-11-15T20:13:52+08:00",
+  "generatedAt": "2026-11-15T20:34:43+08:00",
   "status": "stable",
   "appendOnly": false,
   "source": {
     "repository": "zjcrop/Brew-Water-Calibrato",
     "ref": "main",
     "path": "index.html",
-    "commit": "970bce78c929db019b90124be316ef3a61213307"
+    "commit": "a7fc956fc3480d3ece083fefecd7b2a372b21175"
   },
   "compatibility": {
     "minimumConsumerContract": "water-formulation/1.0",
@@ -26,11 +26,11 @@
   "artifacts": [
     {
       "kind": "catalog",
-      "path": "data/water-chemistry-data-1.0.20261115+app.2.8.0.src.970bce78c929.json",
-      "url": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/data/water-chemistry-data-1.0.20261115+app.2.8.0.src.970bce78c929.json",
+      "path": "data/water-chemistry-data-1.0.20261115+app.2.8.1.src.a7fc956fc348.json",
+      "url": "https://raw.githubusercontent.com/zjcrop/Brew-Water-Calibrato/main/provider/releases/data/water-chemistry-data-1.0.20261115+app.2.8.1.src.a7fc956fc348.json",
       "mediaType": "application/json",
       "bytes": 29792,
-      "sha256": "09bd2cbcba7ade50b1514c20d475623e41bd382ff9f5489ded2a87ef18022999"
+      "sha256": "0eb2774b4d1883c068b68a903193d3ac42e9b671251e84012b2b4a21470e3607"
     },
     {
       "kind": "module",
@@ -47,8 +47,8 @@
     "Complete dissolution and no precipitation are explicit idealizations; low-solubility salts require experimental validation."
   ],
   "metadata": {
-    "sourceAppVersion": "2.8.0",
-    "sourceRevision": "970bce78c929",
+    "sourceAppVersion": "2.8.1",
+    "sourceRevision": "a7fc956fc348",
     "deterministicEngineVersion": "1.1.0",
     "dataSource": "constants-extracted-from-standalone-app-at-build-time"
   }
