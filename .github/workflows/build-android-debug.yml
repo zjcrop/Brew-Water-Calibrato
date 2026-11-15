@@ -90,6 +90,8 @@ jobs:
             -storepass:env CUILI_ANDROID_STORE_PASSWORD -alias "$CUILI_ANDROID_KEY_ALIAS"
           printf 'CUILI_ANDROID_KEYSTORE_PATH=%s\n' "$KEYSTORE_PATH" >> "$GITHUB_ENV"
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
