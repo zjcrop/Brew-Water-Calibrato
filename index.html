@@ -485,9 +485,22 @@ body.home-screen #page-home.active{display:flex!important;align-items:stretch;ju
       </div>
 
       <div id="silicaPowderBox" class="silica-field hidden">
-        <div class="input-label">SiO₂占最终母粉比例，%</div>
-        <input id="silicaPowderPct" class="select-like" type="number" min="0" max="2" step="0.1" value="0.5" oninput="silicaInputChanged()">
-        <div class="helper" style="margin-top:6px">默认0.5%，按98%食品级亲水无定形SiO₂计算；作为抗结和分散辅助，不预设为有效可溶硅。</div>
+        <div class="input-label">亲水SiO₂粉体计量方式</div>
+        <select id="silicaPowderDoseMode" class="select-like" onchange="silicaDoseModeChanged()"><option value="percent">抗结配比 · 占最终母粉产品质量 %</option><option value="water">水中名义投料 · 纯SiO₂ mg/L</option></select>
+        <div id="silicaPowderPctFields">
+          <div class="input-label">粉体产品占最终母粉，%</div>
+          <input id="silicaPowderPct" class="select-like" type="number" min="0" max="2" step="0.1" value="0.5" oninput="silicaInputChanged()">
+          <div class="helper" style="margin-top:6px">保留0–2%的工程研究范围，默认值未自动启用；不是法规限量，也不是最佳抗结比例。</div>
+        </div>
+        <div id="silicaPowderWaterFields" class="hidden">
+          <div class="input-label">水中纯SiO₂名义投料，mg/L</div>
+          <input id="silicaWaterMgL" class="select-like" type="number" min="0" max="5" step="0.1" value="0.5" oninput="silicaInputChanged()">
+          <div class="target-presets" style="grid-template-columns:repeat(5,1fr);margin-top:9px"><button class="target-chip" onclick="setSilicaWaterTarget(0)">0</button><button class="target-chip" onclick="setSilicaWaterTarget(0.5)">0.5</button><button class="target-chip" onclick="setSilicaWaterTarget(1)">1</button><button class="target-chip" onclick="setSilicaWaterTarget(2)">2</button><button class="target-chip" onclick="setSilicaWaterTarget(5)">5</button></div>
+          <div class="helper" style="margin-top:6px">0–5 mg/L仅供低量对照试验，不代表最佳值；含量按粉体纯度换算，不是已溶解硅浓度。</div>
+        </div>
+        <div class="input-label">本批粉体纯度，%</div>
+        <input id="silicaPowderPurity" class="select-like" type="number" min="0.000001" max="100" step="0.000001" value="99.999999" oninput="silicaInputChanged()">
+        <div class="helper" style="margin-top:6px">按已确认的食品级亲水粉体核算。亲水易分散不等于全部溶解；实际溶解量仍未知。</div>
       </div>
 
       <div id="silicaAssayBox" class="silica-field">
@@ -671,8 +684,8 @@ const SILICA_ROUTES={
     note:'按标签标示的mg SiO₂/mL计算体积。先在大体积RO水中稀释，再加入母粉溶液；不把未知稳定剂、Na、K或酸性载体自动计入。'
   },
   silica:{
-    id:'silica',name:'食品级无定形二氧化硅｜调粉',mw:60.084,purity:.98,cation:null,
-    note:'按最终母粉质量比例计算并与母粉几何预混。整袋加入5L RO水，充分摇匀后密闭静置24小时，使用前再次摇匀；只作为抗结与分散辅助，不预设完全溶解，不计入有效离子和电导TDS。'
+    id:'silica',name:'食品级亲水二氧化硅粉体',mw:60.084,purity:.99999999,cation:null,
+    note:'微量粉体单独称量；配母粉时先与相近量基粉几何预混。入水时可用少量水另行润湿分散，再加入目标体积水，轻缓操作避免扬尘。亲水分散不代表全部溶解，不按固定静置时间承诺全溶。'
   },
   potassium:{
     id:'potassium',name:'粉末硅酸钾｜按产品组成计算',mw:0,purity:1,cation:'K',
@@ -911,7 +924,7 @@ function getComputed(){
   const amounts=normalizeTweaked(base),silica=lastSilicaBase||computeSilicaAddon(0);
   const baseTotal=Object.values(amounts).reduce((s,v)=>s+v,0);
   if(silica.enabled&&silica.route==='silica'){
-    const pct=silica.powderPct||0;silica.doseG=baseTotal*pct/Math.max(.001,100-pct);silica.nominalSiO2MgL=silica.doseG*.98/5*1000;silica.targetMgL=silica.nominalSiO2MgL;
+    const pct=silica.powderPct||0;silica.doseG=baseTotal*pct/Math.max(.001,100-pct);silica.nominalSiO2MgL=silica.doseG*(silica.purity??SILICA_ROUTES.silica.purity)/5*1000;silica.targetMgL=silica.nominalSiO2MgL;
   }
   const solidSilica=silica.enabled&&silica.solidInPremix?(silica.doseG||0):0;
   const total=baseTotal+solidSilica;
@@ -1667,6 +1680,33 @@ const cuiliSelectBeanBefore28=selectBean;
 selectBean=function(id){MAT.forEach(m=>tweak[m.id]=0);Object.keys(cuiliManualDosesG).forEach(key=>delete cuiliManualDosesG[key]);cuiliSelectBeanBefore28(id);};
 const cuiliSetSaltSystemBefore28=setSaltSystem;
 setSaltSystem=function(system){MAT.forEach(m=>{tweak[m.id]=0;selected[m.id]=m.default;});Object.keys(cuiliManualDosesG).forEach(key=>delete cuiliManualDosesG[key]);cuiliSetSaltSystemBefore28(system);};
+function silicaDoseModeChanged(){updateSilicaUI();updateAll();}
+function setSilicaWaterTarget(value){$('silicaWaterMgL').value=value;silicaInputChanged();}
+const cuiliUpdateSilicaUIBefore28=updateSilicaUI;
+updateSilicaUI=function(){
+  cuiliUpdateSilicaUIBefore28();
+  if($('silicaPowderPctFields')){
+    const water=$('silicaPowderDoseMode').value==='water';
+    $('silicaPowderPctFields').classList.toggle('hidden',water);
+    $('silicaPowderWaterFields').classList.toggle('hidden',!water);
+  }
+};
+const cuiliComputeSilicaAddonBefore28=computeSilicaAddon;
+computeSilicaAddon=function(baseSaltTotal=0){
+  if(silicaRoute!=='silica')return cuiliComputeSilicaAddonBefore28(baseSaltTotal);
+  const out={enabled:silicaEnabled,route:'silica',name:SILICA_ROUTES.silica.name,solidInPremix:true,doseG:0,doseMl:0,siMoles:0,alkEq:0,naEq:0,kEq:0,dissolvedMassG:null,dissolvedSiO2MgL:null,warning:SILICA_ROUTES.silica.note};
+  if(!silicaEnabled)return out;
+  out.powderDoseMode=$('silicaPowderDoseMode').value;
+  out.purity=cuiliNumberInput('silicaPowderPurity','亲水SiO₂粉体纯度',{min:.000001,max:100})/100;
+  if(out.powderDoseMode==='percent'){
+    out.powderPct=cuiliNumberInput('silicaPowderPct','粉体产品占母粉比例',{min:0,max:2});
+    out.doseG=baseSaltTotal*out.powderPct/(100-out.powderPct);
+  }else if(out.powderDoseMode==='water'){
+    out.nominalTargetMgL=cuiliNumberInput('silicaWaterMgL','纯SiO₂名义投料',{min:0,max:5});
+    out.doseG=out.nominalTargetMgL*5/1000/out.purity;
+  }else throw new Error('请选择粉体计量方式');
+  return out;
+};
 function cuiliNumberInput(id,label,{min=0,max=Infinity}={}){
   const value=$(id).value;
   if(value.trim()==='')throw new Error(label+'不能为空');
@@ -1700,8 +1740,7 @@ getComputed=function(){
   const target=targetIons(),amount=targetDisplay();
   const silica=computeSilicaAddon(0);
   if(silica.enabled){
-    if(silica.route==='silica')silica.powderPct=cuiliNumberInput('silicaPowderPct','SiO₂比例',{min:0,max:2});
-    else cuiliNumberInput('silicaTarget','SiO₂目标',{min:0,max:10});
+    if(silica.route!=='silica')cuiliNumberInput('silicaTarget','SiO₂目标',{min:0,max:10});
     if(silica.route==='liquid')cuiliNumberInput('silicaAssay','液体硅浓度',{min:.1,max:100000});
     if(silica.route==='potassium'){
       const si=cuiliNumberInput('silicaKSiO2','产品SiO₂含量',{min:1,max:90});
@@ -1758,7 +1797,8 @@ updateAll=function(){
     const c=getComputed(),p=PROFILE[selectedBean],digits=c.scaleResolutionG<.01?3:2;
     const needsReview=!c.matched||c.risks.risks.length>0||!c.ionicAccountingComplete||(c.teaWarnings||[]).length>0;
     $('engineStatus').className='engine-status '+(needsReview?'review':'verified');
-    $('engineStatus').innerHTML=!c.matched?'<strong>部分目标存在偏差</strong><span>请查看离子核对，或调整盐源、微调和天平分辨率。</span>':c.risks.risks.length?'<strong>离子目标已核对，浓度需留意</strong><span>部分离子超过保守筛查阈值，请查看下方离子表和风险提醒。</span>':!c.ionicAccountingComplete?'<strong>已知离子已核对，硅载体信息不完整</strong><span>电荷、电导和总碱度仍需补充载体组成并实测。</span>':'<strong>离子目标已核对</strong><span>下方结果按显示称量值重新计算 · 基础水为接近零矿化RO水</span>';
+    const mismatchMessage=c.ionMatched!==false&&c.silicaDoseMatched===false?'<strong>硅粉名义投料存在称量偏差</strong><span>离子目标已核对；硅粉微量用量受天平分辨率影响，可改用母粉放大称量。请查看硅粉请求与实际名义量。</span>':'<strong>部分目标存在偏差</strong><span>请查看离子核对与硅粉名义量，或调整盐源、微调和天平分辨率。</span>';
+    $('engineStatus').innerHTML=!c.matched?mismatchMessage:c.risks.risks.length?'<strong>离子目标已核对，浓度需留意</strong><span>部分离子超过保守筛查阈值，请查看下方离子表和风险提醒。</span>':!c.ionicAccountingComplete?'<strong>已知离子已核对，硅载体信息不完整</strong><span>电荷、电导和总碱度仍需补充载体组成并实测。</span>':'<strong>离子目标与称量已核对</strong><span>下方结果按显示称量值重新计算 · 基础水为接近零矿化RO水</span>';
     if(c.risks.risks.length)$('engineStatus').insertAdjacentHTML('beforeend','<span>'+c.risks.risks.map(risk=>cuiliRiskText(risk,c)).join(' ')+'</span>');
     if((c.teaWarnings||[]).length)$('engineStatus').insertAdjacentHTML('beforeend','<span>'+c.teaWarnings.join(' ')+'</span>');
     $('mixSummary').textContent=outputMode==='premix'?`母粉实际总量 ${fmt(c.actualBatchG,digits)} g`:`配方水 ${fmt(c.outputAmount,1)} L`;
@@ -1793,7 +1833,13 @@ updateAll=function(){
     $('ionExplain').innerHTML='<div class="note-box">GH只由Ca/Mg计入。碳酸盐碱度以CaCO₃计，仅计HCO₃⁻与CO₃²⁻；有机阴离子贡献未被当成等量碳酸氢根。总碱度与pH应按明确终点和方法实测。</div>';
     $('riskExplain').innerHTML='<div class="helper">下列为完全溶解、未发生沉淀的投料账本，不是游离离子活度。若实际返浑或析出，应以实测结果为准。</div>';
     $('silicaSummary').classList.toggle('hidden',!c.silica.enabled);
-    if(c.silica.enabled)$('silicaSummary').textContent=c.warnings.filter(x=>/硅|SiO/.test(x)).join(' ');
+    if(c.silica.enabled){
+      const s=c.silica;
+      if(s.route==='silica'){
+        const known=(value,digits)=>Number.isFinite(value)?fmt(value,digits):'待核算';
+        $('silicaSummary').innerHTML=`<strong>亲水SiO₂粉体 · 名义投料</strong><br>粉体产品 ${known(s.actualProductG5L,6)} g / 5L；纯SiO₂名义 ${known(s.nominalSiO2MgL,3)} mg/L（请求 ${known(s.requestedNominalSiO2MgL??s.nominalPureSiO2MgL,3)}）；最终母粉 ${known(s.actualPremixPct,4)}%；纯度 ${known(s.purity*100,6)}%。<br>实际溶解量未知，不计入已溶解离子或电导参考。名义投料按显示称量回算，低于天平分辨率时请用母粉放大称量。`;
+      }else $('silicaSummary').textContent=c.warnings.filter(x=>/硅|SiO/.test(x)).join(' ');
+    }
     renderRecipeCards();renderRiskPage();
     if(typeof cuiliUpdateModeLabels==='function')cuiliUpdateModeLabels();
     if(cuiliIsTea())$('teaProfilePanel').innerHTML=`<h4>${p.name} · 经验起点</h4><div class="tea-mode-note">保留原茶型的低剂量复矿构思。Ca/Mg/HCO₃中心值是工程预设，尚未对当前茶样验证；源水pH、游离氯与铁离子需实测。</div>`;
@@ -1812,7 +1858,9 @@ renderRecipeCards=function(){
   if(c.silica.enabled){
     const liquid=c.silica.route==='liquid';
     const value=liquid?c.silica.doseMl*(outputMode==='direct'?c.outputAmount/5:1):c.displaySilicaG;
-    lines.push(`<div class="recipe-card"><div class="recipe-summary"><div class="recipe-amount">${fmt(value,liquid?3:digits)}${liquid?'mL':'g'}</div><div class="recipe-name">${c.silica.name}<small>${liquid?'单独添加液体；不加入干母粉':'微量硅源单独称量；粉体几何预混，勿直接倾入少量潮湿盐中'}${liquid&&outputMode==='premix'?'；每5L水用量':''}</small></div></div></div>`);
+    const powder=c.silica.route==='silica';
+    const powderInfo=powder?`<div class="weighing-note">本次计入上方实际母粉/粉剂总量：产品 ${fmt(value,digits)}g。${Number.isFinite(c.silica.actualProductG5L)?`每5L产品${fmt(c.silica.actualProductG5L,6)}g，纯SiO₂名义${fmt(c.silica.nominalSiO2MgL,3)}mg/L，母粉${fmt(c.silica.actualPremixPct,4)}%，纯度${fmt(c.silica.purity*100,6)}%。`:''}<br>微量先通过母粉放大称量并几何混匀。入水可少量水另行润湿后再分散，轻缓操作避免扬尘；亲水分散不代表全部溶解，沉降/分散时间请按实测记录。</div>`:'';
+    lines.push(`<div class="recipe-card"><div class="recipe-summary"><div class="recipe-amount">${fmt(value,liquid?3:digits)}${liquid?'mL':'g'}</div><div class="recipe-name">${c.silica.name}<small>${liquid?'单独添加液体；不加入干母粉':'微量硅源单独称量；粉体几何预混，勿直接倾入少量潮湿盐中'}${liquid&&outputMode==='premix'?'；每5L水用量':''}</small></div></div>${powderInfo}</div>`);
   }
   const zeroRows=Object.entries(c.displayDosesG).filter(([,g])=>g===0).map(([id,grams])=>({id,grams,moistureClass:(lastBase[id]||0)>1e-8?'当前不投加；可重新微调':'当前目标未自动使用；可手动试验投加'}));
   globalThis.CuiLiUiEngine.getWeighingOrder(c.displayDosesG,MAT).concat(zeroRows).forEach(({id,grams:g,moistureClass},step)=>{
@@ -1838,7 +1886,8 @@ cuiliTeaSource=function(){
 renderRiskPage=function(){
   const c=lastComputed;if(!c)return;
   const items=[];
-  if(!c.matched)items.push(['离子目标尚未匹配',Object.keys(c.targets).map(ion=>`${ion}：目标${fmt(c.targets[ion],2)}，实得${fmt(c.loads[ion],2)} mg/L`).join('；')]);
+  if(c.ionMatched===false||(c.ionMatched===undefined&&!c.matched))items.push(['离子目标尚未匹配',Object.keys(c.targets).map(ion=>`${ion}：目标${fmt(c.targets[ion],2)}，实得${fmt(c.loads[ion],2)} mg/L`).join('；')]);
+  if(c.silicaDoseMatched===false)items.push(['硅粉名义量需复核',`请求纯SiO₂名义${fmt(c.silica.requestedNominalSiO2MgL??c.silica.nominalPureSiO2MgL,3)} mg/L，显示称量后约${fmt(c.silica.nominalSiO2MgL,3)} mg/L。可选择更精细天平或通过母粉放大称量；不代表实际溶解浓度。`]);
   for(const risk of c.risks.risks)items.push(['浓度筛查提醒',cuiliRiskText(risk,c)+' 该提示不是经杯测验证的风味或设备安全阈值。']);
   for(const text of c.warnings)items.push(['需留意',text]);
   items.push(['化学模型边界','未预测pH、真实结合率、沉淀率或咖啡中各酸的萃取率。沉淀与络合需溶液平衡数据和实验验证。']);
@@ -1848,7 +1897,7 @@ renderRiskPage=function(){
     items.push(['茶类源水实测',`pH：${src.ph===null?'未提供':src.ph}；游离氯：${src.chlorine===null?'未提供':src.chlorine+' mg/L'}；铁：${src.iron===null?'未提供':src.iron+' mg/L'}。缺失值不按零处理。`]);
     for(const text of c.teaWarnings||[])items.push(['源水实测提醒',text]);
   }
-  $('riskChips').innerHTML=`<span class="risk-chip ${c.matched?'good':'warn'}">目标${c.matched?'已核对':'有偏差'}</span><span class="risk-chip warn">完全溶解假设</span><span class="risk-chip good">反应比例需实测</span>`;
+  $('riskChips').innerHTML=`<span class="risk-chip ${c.matched?'good':'warn'}">目标${c.matched?'已核对':'有偏差'}</span><span class="risk-chip warn">盐类按完全溶解核算</span><span class="risk-chip good">反应比例需实测</span>`;
   $('riskItems').innerHTML=items.map(([title,text])=>`<div class="risk-item"><h4>${title}</h4><p>${text}</p></div>`).join('');
   $('optimAction').classList.toggle('hidden',c.matched);$('riskReturnAction').classList.remove('hidden');
   $('optimAdvice').textContent=c.matched?'离子账本已核对；仍需杯测与实测确认。':'可恢复当前盐体系的基础选择后重新核算，或返回配方页自行调整。';

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "node --test provider/tests/*.test.mjs",
-    "check:syntax": "node --check core/water-engine.mjs && node --check core/provider-bootstrap.mjs && node --check provider/scripts/extract-embedded-data.mjs && node --check provider/scripts/build-provider-release.mjs && node --check provider/scripts/verify-provider-release.mjs && node --check core/ui-engine.mjs && node scripts/check-source.mjs",
+    "check:syntax": "node --check core/water-engine.mjs && node --check core/provider-bootstrap.mjs && node --check provider/scripts/extract-embedded-data.mjs && node --check provider/scripts/build-provider-release.mjs && node --check provider/scripts/verify-provider-release.mjs && node --check core/ui-engine.mjs && node scripts/check-source.mjs && node --check core/silica-dose.mjs",
     "check": "npm run check:syntax && npm test",
     "provider:build": "node provider/scripts/build-provider-release.mjs --write",
     "provider:verify": "node provider/scripts/verify-provider-release.mjs",

@@ -123,6 +123,25 @@ try {
   checks.push('Mobile home, parameters, plan, risk and tea flows render without numeric errors or horizontal overflow');
   await page.setViewportSize({width:1366,height:900});
   await page.evaluate(()=>{setBeverageMode('coffee');goPage('plan');});
+  await page.evaluate(()=>{
+    selectBean('geisha');setSaltSystem('half');setOutputMode('direct');$('targetAmount').value=5;$('scaleResolution').value='0.001';
+    setSilicaRoute('silica');setSilicaEnabled(true);$('silicaPowderDoseMode').value='water';$('silicaWaterMgL').value='.5';$('silicaPowderPurity').value='99.999999';updateAll();
+  });
+  const smallSilica=await page.evaluate(()=>({silica:lastComputed?.silica,matched:lastComputed?.silicaDoseMatched,ionMatched:lastComputed?.ionMatched,status:$('engineStatus').textContent}));
+  assert.ok(smallSilica.silica,smallSilica.status);
+  assert.ok(Math.abs(smallSilica.silica.nominalSiO2MgL-.6)<.0001);
+  assert.equal(smallSilica.silica.dissolvedSiO2MgL,null);
+  assert.equal(smallSilica.matched,false);
+  assert.equal(smallSilica.ionMatched,true);
+  assert.match(smallSilica.status,/硅粉.*偏差/);
+  await page.evaluate(()=>{setOutputMode('premix');$('targetAmount').value=100;updateAll();});
+  const batchSilica=await page.evaluate(()=>({silica:lastComputed.silica,matched:lastComputed.silicaDoseMatched,load:lastComputed.loads}));
+  assert.ok(Math.abs(batchSilica.silica.nominalSiO2MgL-.5)<.003);
+  assert.equal(batchSilica.matched,true);
+  assert.match(await page.locator('#silicaSummary').innerText(),/99\.999999/);
+  await page.screenshot({path:path.join(output,'desktop-silica.png'),fullPage:true});
+  checks.push('99.999999% silica powder supports nominal mg/L and mother-powder dosing; rounding and unknown dissolution remain visible');
+  await page.evaluate(()=>{setSilicaEnabled(false);updateAll();});
   await page.screenshot({path:path.join(output,'desktop-plan.png'),fullPage:true});
   assert.deepEqual(errors,[],'No uncaught browser exceptions');
   assert.deepEqual(badRequests,[],'No broken bundle or provider requests');

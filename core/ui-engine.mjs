@@ -1,5 +1,6 @@
 import { formulateBrewingWater, calculateIonLoads, calculateWaterMetrics, chargeBalance, quantizeDose, evaluateOperationalRisks } from './water-engine.mjs';
 import { buildWeighingOrder } from './weighing-order.mjs';
+import { calculateSilicaPowderDose, calculateActualSilicaPowderDose } from './silica-dose.mjs';
 
 const atomic = { Na:22.990, K:39.098 };
 const sum = values => Object.values(values).reduce((a,b)=>a+b,0);
@@ -78,7 +79,14 @@ export function computeUiFormulation({dataset,target,selectedIds,bias={},tweaks=
   const saltMass=sum(exact);
   if(saltMass<1e-9)throw new Error('选中盐无法提供当前目标离子，请选择适用的钙、镁或碳酸氢盐');
   const silicon=silica?{...silica}:{enabled:false};
-  if(silicon.enabled&&silicon.route==='silica')silicon.doseG=saltMass*silicon.powderPct/(100-silicon.powderPct);
+  if(silicon.enabled&&silicon.route==='silica'){
+    const requested=calculateSilicaPowderDose({
+      baseSaltG5L:saltMass,powderDoseMode:Object.hasOwn(silicon,'powderDoseMode')?silicon.powderDoseMode:'percent',
+      ...(Object.hasOwn(silicon,'purity')?{purity:silicon.purity}:{}),
+      powderPct:Object.hasOwn(silicon,'powderPct')?silicon.powderPct:0,nominalTargetMgL:Object.hasOwn(silicon,'nominalTargetMgL')?silicon.nominalTargetMgL:0
+    });
+    Object.assign(silicon,requested,{solidInPremix:true});
+  }
   const solidSilica=silicon.enabled&&silicon.solidInPremix?(silicon.doseG||0):0;
   const exactTotal=saltMass+solidSilica;
   const round=g=>quantizeDose(g,scaleResolutionG).recommendedG;
@@ -103,16 +111,22 @@ export function computeUiFormulation({dataset,target,selectedIds,bias={},tweaks=
   const warnings=[];
   if(Object.values(manual).some(g=>g>0))warnings.push('手动试验盐按每5L克数加入并计入实际离子；未当作碳酸氢根或等量缓冲，也未保证符合原预设目标。');
   const actualSilicaG=outputMode==='direct'?displaySilicaG*5/outputAmount:(actualBatchG?displaySilicaG/actualBatchG*sampleDose5L:0);
+  if(silicon.enabled&&silicon.route==='silica'){
+    Object.assign(silicon,calculateActualSilicaPowderDose({requested:silicon,actualProductG5L:actualSilicaG,actualTotalG5L:sampleDose5L}));
+    if(!silicon.doseMatched)warnings.unshift(silicon.requestedNominalSiO2MgL>0&&actualSilicaG===0?'SiO₂目标低于当前称量能力，量化后实际投加为0；请配制更大批母粉或使用更精细的天平。':'SiO₂量化后名义投料偏离请求值；请比较实际每5L产品量和名义mg/L，或调整批量与天平分辨率。');
+  }
   if(silicon.enabled) {
     if(silicon.route==='potassium') {
       ions.K+=(actualSilicaG*(silicon.kPct||0)/94.196)*2*atomic.K*1000/5;
       warnings.push('硅酸钾额外钾已计入；硅酸物种、总碱度和电导尚未建模，碳酸氢根目标未被静默抵扣。');
     }else if(silicon.route==='liquid')warnings.push('液体硅按标签体积单独添加；载体中的钠、钾、酸和稳定剂未计入。');
-    else warnings.push('SiO₂粉体按悬浮添加物处理，不计入溶解离子或电导参考。');
+    else warnings.push('亲水SiO₂粉体仅按标称纯度核算名义投料；溶解态与胶体态比例未实测，不计入盐类离子、GH、碳酸盐碱度或电导参考。');
   }
   const metrics=calculateWaterMetrics({ionsMgL:ions});
   const residuals=Object.fromEntries(Object.entries(targets).map(([ion,value])=>[ion,ions[ion]-value]));
-  const matched=Object.entries(residuals).every(([ion,error])=>Math.abs(error)<=Math.max(.25,targets[ion]*.03));
+  const ionMatched=Object.entries(residuals).every(([ion,error])=>Math.abs(error)<=Math.max(.25,targets[ion]*.03));
+  const silicaDoseMatched=!(silicon.enabled&&silicon.route==='silica')||silicon.doseMatched;
+  const matched=ionMatched&&silicaDoseMatched;
   const balance=chargeBalance({ionsMgL:ions,ionMolarMasses:dataset.ionMolarMasses});
   const conductivity=estimateConductivity(ions,dataset.ionMolarMasses,meterFactor);
   const ionicAccountingComplete=!(silicon.enabled&&['potassium','liquid'].includes(silicon.route));
@@ -120,8 +134,8 @@ export function computeUiFormulation({dataset,target,selectedIds,bias={},tweaks=
   const risks=evaluateOperationalRisks({ionsMgL:ions,ionicMassSumMgL:sum(ions),chargeBalanceResult:ionicAccountingComplete?balance:{imbalancePct:0}});
   if(allowed.some(m=>exact[m.id]>1e-8&&['caco3','mgco3','cacit'].includes(m.id)))warnings.push('含溶解性需复核的盐：以下按完全溶解核算，实际溶液可能达不到标示浓度。');
   if((ions.Citrate||0)+(ions.Lactate||0)+(ions.Gluconate||0)>0)warnings.push('有机阴离子的滴定缓冲及钙镁络合尚未求解；碳酸盐碱度不包含这部分。');
-  if(!matched)warnings.unshift('称量后的离子结果偏离预设目标，请检查盐源、微调和天平分辨率。');
+  if(!ionMatched)warnings.unshift('称量后的离子结果偏离预设目标，请检查盐源、微调和天平分辨率。');
   return {targets,solver:solved,baseAmounts,manualDosesG:manual,amounts,displayDosesG,displaySilicaG,outputMode,outputAmount,actualBatchG,
-    total:sampleDose5L,exactTotal,baseTotal:sum(amounts),loads:ions,metrics,residuals,matched,chargeBalance:balance,conductivity,risks,warnings,
+    total:sampleDose5L,exactTotal,baseTotal:sum(amounts),loads:ions,metrics,residuals,matched,ionMatched,silicaDoseMatched,chargeBalance:balance,conductivity,risks,warnings,
     silica:silicon,ionicAccountingComplete,scaleResolutionG,volumeL:outputMode==='direct'?outputAmount:5,assumptions:{source:'接近零矿化RO水',completeDissolution:true,measuredBeanChemistry:false}};
 }
